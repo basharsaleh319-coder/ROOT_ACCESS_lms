@@ -6,7 +6,7 @@ from database import get_db, init_db
 from auth import is_admin
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=".")
 
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard_page(request: Request):

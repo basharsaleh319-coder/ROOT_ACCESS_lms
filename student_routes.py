@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from database import get_db
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=".")
 
 @router.post("/student-login", response_class=HTMLResponse)
 def student_login_action(request: Request, email: str = Form(...), access_code: str = Form(...)):

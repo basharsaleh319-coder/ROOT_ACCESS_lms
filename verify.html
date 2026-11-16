@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التحقق من الشهادات - ROOT ACCESS</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: #1e293b; border: 1px solid #334155; padding: 40px 30px; border-radius: 16px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        h2 { color: #38bdf8; margin: 0 0 10px; font-weight: 800; }
+        p { color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
+        input { width: 100%; padding: 12px 15px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 16px; text-align: center; font-family: monospace; }
+        button { width: 100%; padding: 12px; background: #0284c7; color: white; font-weight: 700; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
+        .valid-box { background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; padding: 20px; border-radius: 10px; margin-top: 25px; text-align: right; }
+        .invalid-box { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; padding: 15px; border-radius: 10px; margin-top: 25px; }
+        .back-link { display: inline-block; margin-top: 20px; color: #94a3b8; text-decoration: none; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>التحقق من الشهادات 🔍</h2>
+        <p>أدخل الرقم التسلسلي للشهادة (مثال: RA-123456) للتحقق من صحتها</p>
+        <form action="/verify" method="post">
+            <input type="text" name="cert_id" placeholder="RA-XXXXXX" required>
+            <button type="submit">تحقق الآن</button>
+        </form>
+
+        {% if searched %}
+            {% if record %}
+            <div class="valid-box">
+                <div style="color: #10b981; font-weight: 800; margin-bottom: 10px;">✔ شهادة إتمام إلكترونية صحيحة</div>
+                <div><strong>اسم المتدرب:</strong> {{ record.student_name }}</div>
+                <div><strong>الدورة:</strong> {{ record.course }}</div>
+                <div><strong>الجهة المانحة:</strong> {{ record.center_name or 'ROOT ACCESS' }}</div>
+                <div><strong>النتيجة:</strong> {{ record.score }} من {{ record.total }}</div>
+            </div>
+            {% else %}
+            <div class="invalid-box">✖ عذرًا، رقم الشهادة المدخل غير مسجل في النظام.</div>
+            {% endif %}
+        {% endif %}
+
+        <a href="/" class="back-link">← العودة للصفحة الرئيسية</a>
+    </div>
+</body>
+</html>

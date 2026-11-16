@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>ROOT ACCESS MASTER - دخول المالك</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #020617; color: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #0f172a; border: 1px solid #38bdf8; padding: 40px; border-radius: 16px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 0 30px rgba(56, 189, 248, 0.15); }
+        h2 { color: #38bdf8; margin: 0 0 5px; font-weight: 800; }
+        p { color: #64748b; font-size: 13px; margin-bottom: 25px; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #1e293b; background: #020617; color: white; }
+        button { width: 100%; padding: 12px; background: #38bdf8; color: #020617; font-weight: 800; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>ROOT ACCESS MASTER</h2>
+        <p>بوابة الإدارة العليا لمالك المنصة</p>
+        <form action="/master-login" method="post">
+            <input type="text" name="username" placeholder="اسم المالك (superadmin)" required>
+            <input type="password" name="password" placeholder="كلمة المرور (Master@2026)" required>
+            <button type="submit">دخول غرفة التحكم 🔐</button>
+        </form>
+    </div>
+</body>
+</html>

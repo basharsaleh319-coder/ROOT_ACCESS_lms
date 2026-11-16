@@ -18,10 +18,11 @@ def student_login_action(request: Request, email: str = Form(...), access_code: 
     
     if not student:
         conn.close()
-        return HTMLResponse("<h3>البريد الإلكتروني أو رمز الدخول غير صحيح! <a href='/'>حاول مرة أخرى</a></h3>")
+        return HTMLResponse("<h3>البريد الإلكتروني أو رمز الدخول غير صحيح! <a href='/portal'>حاول مرة أخرى</a></h3>")
     
-    lessons = conn.execute("SELECT * FROM lessons WHERE course = ?", (student["course"],)).fetchall()
-    quizzes = conn.execute("SELECT * FROM quizzes WHERE course = ?", (student["course"],)).fetchall()
+    inst_id = student["instructor_id"]
+    lessons = conn.execute("SELECT * FROM lessons WHERE course = ? AND instructor_id = ?", (student["course"], inst_id)).fetchall()
+    quizzes = conn.execute("SELECT * FROM quizzes WHERE course = ? AND instructor_id = ?", (student["course"], inst_id)).fetchall()
     conn.close()
     
     return templates.TemplateResponse(
@@ -39,9 +40,12 @@ def student_exam_page(request: Request, email: str = Form(...), access_code: str
     ).fetchone()
     if not student:
         conn.close()
-        return RedirectResponse(url="/", status_code=303)
+        return RedirectResponse(url="/portal", status_code=303)
         
-    quizzes = conn.execute("SELECT * FROM quizzes WHERE course = ?", (student["course"],)).fetchall()
+    quizzes = conn.execute(
+        "SELECT * FROM quizzes WHERE course = ? AND instructor_id = ?",
+        (student["course"], student["instructor_id"])
+    ).fetchall()
     conn.close()
     
     return templates.TemplateResponse(
@@ -58,7 +62,8 @@ async def submit_quiz(request: Request):
     
     conn = get_db()
     student = conn.execute("SELECT * FROM students WHERE email = ? AND access_code = ?", (email, access_code)).fetchone()
-    quizzes = conn.execute("SELECT * FROM quizzes WHERE course = ?", (student["course"],)).fetchall()
+    inst_id = student["instructor_id"]
+    quizzes = conn.execute("SELECT * FROM quizzes WHERE course = ? AND instructor_id = ?", (student["course"], inst_id)).fetchall()
     
     score = 0
     total = len(quizzes)
@@ -68,8 +73,8 @@ async def submit_quiz(request: Request):
             
     cert_id = f"RA-{random.randint(100000, 999999)}"
     conn.execute(
-        "INSERT INTO quiz_results (student_name, course, score, total, cert_id) VALUES (?, ?, ?, ?, ?)",
-        (student["name"], student["course"], score, total, cert_id)
+        "INSERT INTO quiz_results (instructor_id, student_name, course, score, total, cert_id) VALUES (?, ?, ?, ?, ?, ?)",
+        (inst_id, student["name"], student["course"], score, total, cert_id)
     )
     conn.commit()
     conn.close()
@@ -83,8 +88,14 @@ async def submit_quiz(request: Request):
 @router.get("/certificate/{cert_id}", response_class=HTMLResponse)
 def view_certificate(request: Request, cert_id: str):
     conn = get_db()
-    record = conn.execute("SELECT * FROM quiz_results WHERE cert_id = ?", (cert_id,)).fetchone()
+    record = conn.execute("""
+        SELECT quiz_results.*, instructors.center_name 
+        FROM quiz_results 
+        LEFT JOIN instructors ON quiz_results.instructor_id = instructors.id 
+        WHERE cert_id = ?
+    """, (cert_id,)).fetchone()
     conn.close()
+    
     if not record:
         return HTMLResponse("<h3>رقم الشهادة غير صالح.</h3>")
         
@@ -93,3 +104,21 @@ def view_certificate(request: Request, cert_id: str):
         name="certificate.html", 
         context={"record": record, "issue_date": date.today().strftime("%Y-%m-%d")}
     )
+
+# صفحة التحقق العامة من الشهادات
+@router.get("/verify", response_class=HTMLResponse)
+def verify_page(request: Request):
+    return templates.TemplateResponse(request=request, name="verify.html", context={"record": None, "searched": False})
+
+@router.post("/verify", response_class=HTMLResponse)
+def verify_action(request: Request, cert_id: str = Form(...)):
+    conn = get_db()
+    record = conn.execute("""
+        SELECT quiz_results.*, instructors.center_name 
+        FROM quiz_results 
+        LEFT JOIN instructors ON quiz_results.instructor_id = instructors.id 
+        WHERE cert_id = ?
+    """, (cert_id.strip().upper(),)).fetchone()
+    conn.close()
+    
+    return templates.TemplateResponse(request=request, name="verify.html", context={"record": record, "searched": True})

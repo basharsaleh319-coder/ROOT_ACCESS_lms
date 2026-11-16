@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=".")
 
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "1234"

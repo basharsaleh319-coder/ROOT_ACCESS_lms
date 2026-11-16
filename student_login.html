@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دخول الطلاب - ROOT ACCESS</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { 
+            background: radial-gradient(circle at top left, #064e3b, #0f172a 70%); 
+            color: #f8fafc; display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; margin: 0; padding: 20px;
+        }
+        .card { 
+            background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(10px);
+            border: 1px solid rgba(16, 185, 129, 0.25); padding: 40px 35px; 
+            border-radius: 16px; width: 100%; max-width: 380px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4); text-align: center;
+        }
+        .logo { font-size: 24px; font-weight: 800; color: #10b981; margin-bottom: 5px; }
+        .subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
+        input { 
+            width: 100%; padding: 12px 15px; margin-bottom: 15px; border-radius: 8px; 
+            border: 1px solid #334155; background: #0f172a; color: white; font-size: 15px;
+        }
+        input:focus { outline: none; border-color: #10b981; }
+        button { 
+            width: 100%; padding: 12px; background: linear-gradient(135deg, #059669, #10b981); 
+            color: white; font-weight: 700; font-size: 16px; border: none; 
+            border-radius: 8px; cursor: pointer; transition: transform 0.2s;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); }
+        .back-link { display: inline-block; margin-top: 20px; color: #94a3b8; text-decoration: none; font-size: 13px; }
+        .back-link:hover { color: #38bdf8; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">بوابة الطلاب 🎓</div>
+        <div class="subtitle">أدخل بريدك الإلكتروني ورمز الدخول للوصول لدروسك</div>
+        <form action="/student-login" method="post">
+            <input type="email" name="email" placeholder="البريد الإلكتروني" required>
+            <input type="text" name="access_code" placeholder="رمز الدخول (4 أرقام)" maxlength="4" required>
+            <button type="submit">دخول للدورة الآن</button>
+        </form>
+        <a href="/" class="back-link">← العودة لدخول المدربين</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة الطالب - ROOT ACCESS</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #0f172a; color: #f8fafc; margin: 0; padding: 0; }
+        .navbar { background: #1e293b; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+        .brand { font-size: 20px; font-weight: 800; color: #38bdf8; }
+        .exit-btn { color: #94a3b8; text-decoration: none; font-size: 14px; font-weight: 600; }
+        .exit-btn:hover { color: white; }
+        
+        .container { max-width: 850px; margin: 30px auto; padding: 0 20px; }
+        .welcome-box { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid #334155; padding: 25px; border-radius: 14px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .course-badge { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 14px; border-radius: 20px; font-size: 14px; font-weight: 700; }
+        
+        .exam-nav-btn { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 800; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); transition: transform 0.2s; }
+        .exam-nav-btn:hover { transform: translateY(-2px); }
+
+        h3 { color: #38bdf8; margin-top: 25px; font-size: 18px; }
+        .lesson-card { background: #1e293b; border: 1px solid #334155; padding: 16px 20px; border-radius: 10px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .watch-btn { background: #38bdf8; color: #0f172a; padding: 8px 18px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 14px; }
+        .watch-btn:hover { background: #7dd3fc; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">ROOT ACCESS <span style="font-size: 13px; color: #94a3b8; font-weight: 400;">| بوابة المتدرب</span></div>
+        <a href="/" class="exit-btn">تسجيل الخروج ←</a>
+    </div>
+
+    <div class="container">
+        <div class="welcome-box">
+            <div>
+                <h2 style="margin: 0 0 8px;">أهلاً بك، {{ student.name }} 👋</h2>
+                <div>المادة الحالية: <span class="course-badge">{{ student.course }}</span></div>
+            </div>
+            
+            {% if has_quiz %}
+            <form action="/student-exam" method="post" style="margin: 0;">
+                <input type="hidden" name="email" value="{{ student.email }}">
+                <input type="hidden" name="access_code" value="{{ student.access_code }}">
+                <button type="submit" class="exam-nav-btn">📝 الانتقال لصفحة الامتحان</button>
+            </form>
+            {% endif %}
+        </div>
+
+        <h3>📚 قائمة الدروس المسجلة لك:</h3>
+        {% for lesson in lessons %}
+        <div class="lesson-card">
+            <span><strong style="color: #38bdf8;">{{ loop.index }}.</strong> {{ lesson.title }}</span>
+            <a href="{{ lesson.video_url }}" target="_blank" class="watch-btn">مشاهدة الدرس ▶</a>
+        </div>
+        {% else %}
+        <p style="color: #94a3b8; background: #1e293b; padding: 15px; border-radius: 8px;">لم يقم المعلم بإضافة دروس لهذه المادة بعد.</p>
+        {% endfor %}
+    </div>
+</body>
+</html>

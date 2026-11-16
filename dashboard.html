@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - ROOT ACCESS</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #f1f5f9; color: #1e293b; margin: 0; padding: 0; }
+        .navbar { background: #0f172a; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-size: 20px; font-weight: 800; color: #38bdf8; }
+        .logout-btn { background: #ef4444; color: white; padding: 7px 16px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; }
+        
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-right: 5px solid #0284c7; }
+        .stat-card.green { border-right-color: #10b981; }
+        .stat-card.purple { border-right-color: #8b5cf6; }
+        .stat-card.amber { border-right-color: #f59e0b; }
+        .stat-title { color: #64748b; font-size: 14px; font-weight: 600; }
+        .stat-num { font-size: 28px; font-weight: 800; color: #0f172a; margin-top: 5px; }
+
+        .section-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); margin-bottom: 30px; }
+        h2 { color: #0f172a; margin-top: 0; font-size: 19px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; }
+        
+        form.add-form { display: flex; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
+        input, select { padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; flex: 1; min-width: 160px; font-size: 14px; background: #f8fafc; }
+        input:focus, select:focus { outline: none; border-color: #0284c7; background: white; }
+        
+        .primary-btn { padding: 10px 22px; background: #0284c7; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; }
+        .success-btn { padding: 10px 22px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; }
+        .warning-btn { padding: 10px 22px; background: #f59e0b; color: #0f172a; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; }
+        .edit-btn { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 13px; }
+        .del-btn { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 13px; }
+        
+        .question-row { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 10px; margin-bottom: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 14px; width: 100%; max-width: 420px; }
+        .modal-content input { width: 100%; margin-bottom: 15px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; text-align: right; font-size: 14px; }
+        th { background: #f8fafc; color: #475569; font-weight: 700; }
+        .code-badge { background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-family: monospace; font-size: 15px; }
+        .score-badge { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 6px; font-weight: 700; }
+        a.btn-link { color: #0284c7; text-decoration: none; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">ROOT ACCESS <span style="font-size: 13px; color: #94a3b8; font-weight: 400;">| لوحة تحكم المدرب</span></div>
+        <a href="/logout" class="logout-btn">تسجيل الخروج</a>
+    </div>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-title">إجمالي الطلاب</div><div class="stat-num">{{ students|length }}</div></div>
+            <div class="stat-card green"><div class="stat-title">الدروس المنشورة</div><div class="stat-num">{{ lessons|length }}</div></div>
+            <div class="stat-card purple"><div class="stat-title">أسئلة الامتحانات</div><div class="stat-num">{{ quizzes|length }}</div></div>
+            <div class="stat-card amber"><div class="stat-title">الشهادات الصادرة</div><div class="stat-num">{{ results|length }}</div></div>
+        </div>
+
+        <div class="section-card">
+            <h2>✏️ تعديل اسم مادة (دورة) بالكامل</h2>
+            <form action="/rename-course" method="post" class="add-form">
+                <input type="text" name="old_course" placeholder="اسم المادة الحالي" required>
+                <input type="text" name="new_course" placeholder="اسم المادة الجديد" required>
+                <button type="submit" class="warning-btn">تحديث الاسم</button>
+            </form>
+        </div>
+
+        <div class="section-card">
+            <h2>👥 إدارة الطلاب</h2>
+            <form action="/add-student" method="post" class="add-form">
+                <input type="text" name="name" placeholder="اسم الطالب الكامل" required>
+                <input type="email" name="email" placeholder="البريد الإلكتروني" required>
+                <input type="text" name="course" placeholder="اسم المادة" required>
+                <button type="submit" class="primary-btn">+ إضافة طالب</button>
+            </form>
+            <table>
+                <thead>
+                    <tr><th>#</th><th>الاسم</th><th>البريد الإلكتروني</th><th>المادة</th><th>رمز الدخول</th><th>إجراءات</th></tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td>{{ student.id }}</td><td><strong>{{ student.name }}</strong></td><td>{{ student.email }}</td><td>{{ student.course }}</td>
+                        <td><span class="code-badge">{{ student.access_code }}</span></td>
+                        <td style="display: flex; gap: 6px;">
+                            <button type="button" class="edit-btn" onclick="openEditModal('{{ student.id }}', '{{ student.name }}', '{{ student.email }}', '{{ student.course }}')">تعديل ✏️</button>
+                            <form action="/delete-student/{{ student.id }}" method="post" onsubmit="return confirm('حذف هذا الطالب؟');" style="margin:0;">
+                                <button type="submit" class="del-btn">حذف 🗑️</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" style="text-align: center; color: #64748b;">لا يوجد طلاب مسجلون حاليًا.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>        <div class="section-card">
+            <h2>🎬 إدارة الدروس والمواد</h2>
+            <form action="/add-lesson" method="post" class="add-form">
+                <input type="text" name="title" placeholder="عنوان الدرس" required>
+                <input type="text" name="course" placeholder="اسم المادة التابع لها" required>
+                <input type="url" name="video_url" placeholder="رابط الفيديو (YouTube / Drive)" required>
+                <button type="submit" class="primary-btn">+ إضافة درس</button>
+            </form>
+            <table>
+                <thead>
+                    <tr><th>#</th><th>عنوان الدرس</th><th>المادة</th><th>الفيديو</th><th>إجراء</th></tr>
+                </thead>
+                <tbody>
+                    {% for lesson in lessons %}
+                    <tr>
+                        <td>{{ lesson.id }}</td><td><strong>{{ lesson.title }}</strong></td><td>{{ lesson.course }}</td>
+                        <td><a href="{{ lesson.video_url }}" target="_blank" class="btn-link">فتح الفيديو ↗</a></td>
+                        <td>
+                            <form action="/delete-lesson/{{ lesson.id }}" method="post" onsubmit="return confirm('حذف هذا الدرس؟');" style="margin:0;">
+                                <button type="submit" class="del-btn">حذف 🗑️</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align: center; color: #64748b;">لا توجد دروس مضافة حاليًا.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-card">
+            <h2>📝 إنشاء امتحان (إضافة عدة أسئلة معًا)</h2>
+            <form action="/add-bulk-quiz" method="post" style="margin-top: 15px;">
+                <div style="margin-bottom: 15px;">
+                    <input type="text" name="course" placeholder="اكتب اسم المادة التابع لها هذا الامتحان (مثال: C#)" style="width: 100%; border: 2px solid #0284c7;" required>
+                </div>
+
+                <div id="questions-container">
+                    <div class="question-row">
+                        <input type="text" name="question" placeholder="نص السؤال 1" style="flex: 100%;" required>
+                        <input type="text" name="opt1" placeholder="الخيار 1" required>
+                        <input type="text" name="opt2" placeholder="الخيار 2" required>
+                        <input type="text" name="opt3" placeholder="الخيار 3" required>
+                        <select name="correct_opt" required>
+                            <option value="" disabled selected>الإجابة الصحيحة</option>
+                            <option value="1">الخيار 1</option>
+                            <option value="2">الخيار 2</option>
+                            <option value="3">الخيار 3</option>
+                             <option value="4">الخيار 4</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button type="button" class="success-btn" onclick="addMoreQuestion()">+ إضافة سؤال آخر للنموذج</button>
+                    <button type="submit" class="primary-btn">💾 حفظ جميع الأسئلة في الامتحان</button>
+                </div>
+            </form>
+
+            <h3 style="margin-top: 30px; font-size: 16px; color: #475569;">الأسئلة المحفوظة حاليًا:</h3>
+            <table>
+                <thead>
+                    <tr><th>المادة</th><th>السؤال</th><th>الخيارات</th><th>الصحيح</th><th>إجراء</th></tr>
+                </thead>
+                <tbody>
+                    {% for q in quizzes %}
+                    <tr>
+                        <td>{{ q.course }}</td><td><strong>{{ q.question }}</strong></td>
+                        <td>1) {{ q.opt1 }} | 2) {{ q.opt2 }} | 3) {{ q.opt3 }}</td>
+                        <td><span class="score-badge">خيار {{ q.correct_opt }}</span></td>
+                        <td>
+                            <form action="/delete-quiz/{{ q.id }}" method="post" onsubmit="return confirm('حذف هذا السؤال؟');" style="margin:0;">
+                                <button type="submit" class="del-btn">حذف 🗑️</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align: center; color: #64748b;">لم يتم إضافة أسئلة بعد.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-card">
+            <h2>🏆 نتائج الامتحانات والشهادات الصادرة</h2>
+            <table>
+                <thead>
+                    <tr><th>اسم الطالب</th><th>المادة</th><th>النتيجة</th><th>الشهادة المعتمدة</th><th>إجراء</th></tr>
+                </thead>
+                <tbody>
+                    {% for res in results %}
+                    <tr>
+                        <td><strong>{{ res.student_name }}</strong></td><td>{{ res.course }}</td>
+                        <td><span class="score-badge">{{ res.score }} من {{ res.total }}</span></td>
+                        <td><a href="/certificate/{{ res.cert_id }}" target="_blank" class="btn-link">{{ res.cert_id }} ↗</a></td>
+                        <td>
+                            <form action="/delete-result/{{ res.id }}" method="post" onsubmit="return confirm('حذف هذه الشهادة؟');" style="margin:0;">
+                                <button type="submit" class="del-btn">حذف 🗑️</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" style="text-align: center; color: #64748b;">لا توجد نتائج مسجلة بعد.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 20px;">✏️ تعديل بيانات الطالب</h2>
+            <form id="editStudentForm" method="post">
+                <input type="text" id="editName" name="name" placeholder="اسم الطالب" required>
+                <input type="email" id="editEmail" name="email" placeholder="البريد الإلكتروني" required>
+                <input type="text" id="editCourse" name="course" placeholder="المادة" required>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="primary-btn" style="flex: 1;">حفظ التعديل</button>
+                    <button type="button" class="del-btn" onclick="closeEditModal()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let qCount = 1;
+        function addMoreQuestion() {
+            qCount++;
+            const container = document.getElementById('questions-container');
+            const div = document.createElement('div');
+            div.className = 'question-row';
+            div.innerHTML = `
+                <input type="text" name="question" placeholder="نص السؤال ${qCount}" style="flex: 100%;" required>
+                <input type="text" name="opt1" placeholder="الخيار 1" required>
+                <input type="text" name="opt2" placeholder="الخيار 2" required>
+                <input type="text" name="opt3" placeholder="الخيار 3" required>
+                <select name="correct_opt" required>
+                    <option value="" disabled selected>الإجابة الصحيحة</option>
+                    <option value="1">الخيار 1</option>
+                    <option value="2">الخيار 2</option>
+                    <option value="3">الخيار 3</option>
+                </select>
+                <button type="button" class="del-btn" onclick="this.parentElement.remove()">إزالة ✕</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function openEditModal(id, name, email, course) {
+            document.getElementById('editStudentForm').action = '/edit-student/' + id;
+            document.getElementById('editName').value = name;
+            document.getElementById('editEmail').value = email;
+            document.getElementById('editCourse').value = course;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
+

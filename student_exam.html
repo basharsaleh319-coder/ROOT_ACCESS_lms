@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>امتحان المادة - ROOT ACCESS</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #0f172a; color: #f8fafc; margin: 0; padding: 0; }
+        .navbar { background: #1e293b; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+        .brand { font-size: 20px; font-weight: 800; color: #38bdf8; }
+        .back-btn { background: #334155; color: white; border: none; padding: 7px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
+        .back-btn:hover { background: #475569; }
+        
+        .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+        .exam-header { background: #1e293b; border: 1px solid #334155; padding: 20px 25px; border-radius: 12px; margin-bottom: 25px; }
+        .quiz-box { background: #1e293b; border: 1px solid #334155; padding: 25px; border-radius: 12px; }
+        .quiz-item { margin-bottom: 22px; border-bottom: 1px solid #334155; padding-bottom: 18px; }
+        .option-label { display: block; margin: 8px 0; cursor: pointer; background: #0f172a; border: 1px solid #334155; padding: 12px 15px; border-radius: 8px; transition: border-color 0.2s; }
+        .option-label:hover { border-color: #38bdf8; }
+        .submit-btn { background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; }
+        
+        .result-banner { background: rgba(6, 95, 70, 0.4); border: 1px solid #10b981; padding: 25px; border-radius: 12px; text-align: center; font-size: 19px; margin-bottom: 25px; }
+        .cert-btn { display: inline-block; margin-top: 15px; background: #f59e0b; color: #0f172a; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: 800; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="brand">ROOT ACCESS <span style="font-size: 13px; color: #94a3b8; font-weight: 400;">| قاعة الامتحان</span></div>
+        <form action="/student-login" method="post" style="margin: 0;">
+            <input type="hidden" name="email" value="{{ student.email }}">
+            <input type="hidden" name="access_code" value="{{ student.access_code }}">
+            <button type="submit" class="back-btn">← العودة للدروس</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <div class="exam-header">
+            <h2 style="margin: 0 0 5px; color: #38bdf8;">📝 الامتحان النهائي: {{ student.course }}</h2>
+            <p style="margin: 0; color: #94a3b8; font-size: 14px;">المتدرب: {{ student.name }} | عدد الأسئلة: {{ quizzes|length }}</p>
+        </div>
+
+        {% if score is not none %}
+        <div class="result-banner">
+            🎉 تم تصحيح إجاباتك! نتيجتك النهائية هي: <strong>{{ score }} من {{ total }}</strong>
+            {% if score >= (total / 2) %}
+            <br>
+            <a href="/certificate/{{ cert_id }}" target="_blank" class="cert-btn">🎓 عرض وطباعة الشهادة المعتمدة</a>
+            {% else %}
+            <p style="font-size: 14px; color: #cbd5e1; margin-top: 10px;">تحتاج إلى 50% على الأقل للحصول على الشهادة. يمكنك إعادة المحاولة!</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <form action="/submit-quiz" method="post" class="quiz-box">
+            <input type="hidden" name="email" value="{{ student.email }}">
+            <input type="hidden" name="access_code" value="{{ student.access_code }}">
+            {% for q in quizzes %}
+            <div class="quiz-item">
+                <p style="margin-top: 0;"><strong>س{{ loop.index }}: {{ q.question }}</strong></p>
+                <label class="option-label"><input type="radio" name="q_{{ q.id }}" value="1" required> {{ q.opt1 }}</label>
+                <label class="option-label"><input type="radio" name="q_{{ q.id }}" value="2"> {{ q.opt2 }}</label>
+                <label class="option-label"><input type="radio" name="q_{{ q.id }}" value="3"> {{ q.opt3 }}</label>
+                <label class="option-label"><input type="radio" name="q_{{ q.id }}" value="4"> {{ q.opt4 }}</label>
+            </div>
+            {% endfor %}
+            <button type="submit" class="submit-btn">تسليم الإجابات والحصول على النتيجة ✔</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>شهادة إتمام دورة - {{ record.student_name }}</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #e2e8f0; display: flex; flex-direction: column; align-items: center; padding: 30px; margin: 0; }
+        .cert-border { 
+            width: 850px; background: white; padding: 50px; 
+            border: 14px solid #0f172a; outline: 4px solid #0284c7; outline-offset: -22px; 
+            text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.15); position: relative;
+        }
+        .brand { color: #0284c7; font-size: 22px; font-weight: 800; letter-spacing: 2px; }
+        h1 { font-size: 38px; color: #0f172a; margin: 15px 0 10px; font-weight: 800; }
+        .subtitle { font-size: 17px; color: #475569; margin: 8px 0; }
+        .student-name { 
+            font-size: 32px; color: #0284c7; font-weight: 800; margin: 20px 0; 
+            border-bottom: 2px solid #cbd5e1; display: inline-block; padding: 0 50px 8px; 
+        }
+        .course-name { font-size: 24px; color: #0f172a; font-weight: 800; margin: 12px 0; }
+        .footer { 
+            display: flex; justify-content: space-between; margin-top: 45px; 
+            padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 14px; color: #64748b; 
+        }
+        .print-btn { 
+            margin-top: 25px; padding: 12px 28px; background: #0284c7; color: white; 
+            border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 700; 
+        }
+        .print-btn:hover { background: #0369a1; }
+        @media print { .print-btn { display: none; } body { background: white; padding: 0; } }
+    </style>
+</head>
+<body>
+    <div class="cert-border">
+        <div class="brand">ROOT ACCESS ACADEMY</div>
+        <h1>شهادة إتمام دورة تدريبية</h1>
+        <p class="subtitle">تشهد إدارة المنصة بأن المتدرب/ة:</p>
+        <div class="student-name">{{ record.student_name }}</div>
+        <p class="subtitle">قد أتم بنجاح متطلبات الدورة التدريبية بعنوان:</p>
+        <div class="course-name">« {{ record.course }} »</div>
+        <p class="subtitle">واجتاز الاختبار التقييمي بدرجة <strong>{{ record.score }} من {{ record.total }}</strong></p>
+        
+        <div class="footer">
+            <span>تاريخ الإصدار: <strong>{{ issue_date }}</strong></span>
+            <span>رقم التحقق المعتمد: <strong style="font-family: monospace; font-size: 15px;">{{ record.cert_id }}</strong></span>
+        </div>
+    </div>
+    <button onclick="window.print()" class="print-btn">🖨️ طباعة الشهادة أو حفظها كـ PDF</button>
+</body>
+</html>

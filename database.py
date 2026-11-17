@@ -1,19 +1,56 @@
+import os
 import sqlite3
 import hashlib
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
-def get_db():
-    conn = sqlite3.connect("root_access.db")
-    conn.row_factory = sqlite3.Row
-    return conn
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
+
+# طبقة توافق ذكية تجعل PostgreSQL يعمل بنفس أوامر SQLite دون تعديل باقي الملفات
+class PostgresWrapper:
+    def __init__(self, conn):
+        self.conn = conn
+        self.cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    def execute(self, query, params=None):
+        # تحويل علامات الاستفهام ? إلى %s الخاصة بـ PostgreSQL
+        pg_query = query.replace("?", "%s")
+        # تعديل صيغة المفتاح التلقائي عند إنشاء الجداول
+        pg_query = pg_query.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY")
+        # تعديل صيغة تجاهل التكرار عند إدخال المدرب الافتراضي
+        if "INSERT OR IGNORE INTO instructors" in pg_query:
+            pg_query = pg_query.replace("INSERT OR IGNORE INTO", "INSERT INTO") + " ON CONFLICT (username) DO NOTHING"
+        
+        self.cur.execute(pg_query, params or ())
+        return self.cur
+
+    def cursor(self):
+        return self
+
+    def commit(self):
+        self.conn.commit()
+
+    def close(self):
+        self.cur.close()
+        self.conn.close()
+
+def get_db():
+    if DATABASE_URL:
+        conn = psycopg2.connect(DATABASE_URL)
+        return PostgresWrapper(conn)
+    else:
+        conn = sqlite3.connect("root_access.db")
+        conn.row_factory = sqlite3.Row
+        return conn
 
 def init_db():
     conn = get_db()
     cursor = conn.cursor()
     
-    # 1. جدول المدربين والمراكز (العملاء)
+    # 1. جدول المدربين والمراكز
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS instructors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,11 +62,10 @@ def init_db():
         )
     """)
     
-    # إنشاء حساب مدرب تجريبي افتراضي (admin / 1234)
     default_pass = hash_password("1234")
     cursor.execute("""
-        INSERT OR IGNORE INTO instructors (id, center_name, username, password_hash, plan)
-        VALUES (1, 'أكاديمية التجربة', 'admin', ?, 'الباقة الشهرية')
+        INSERT OR IGNORE INTO instructors (center_name, username, password_hash, plan)
+        VALUES ('أكاديمية التجربة', 'admin', ?, 'الباقة الشهرية')
     """, (default_pass,))
 
     # 2. جدول الطلاب
@@ -82,12 +118,5 @@ def init_db():
         )
     """)
     
-    # ترقية الجداول القديمة تلقائيًا إذا كانت موجودة بدون عمود instructor_id
-    for table in ["students", "lessons", "quizzes", "quiz_results"]:
-        try:
-            cursor.execute(f"ALTER TABLE {table} ADD COLUMN instructor_id INTEGER DEFAULT 1")
-        except sqlite3.OperationalError:
-            pass  # العمود موجود بالفعل
-
     conn.commit()
     conn.close()

@@ -30,8 +30,15 @@ def login_page(request: Request):
         return RedirectResponse(url="/dashboard", status_code=303)
     return templates.TemplateResponse(request=request, name="login.html")
 
-@router.post("/login")
-def instructor_login_action(username: str = Form(...), password: str = Form(...)):
+# 2. بوابة دخول المدربين والطلاب
+@router.get("/portal", response_class=HTMLResponse)
+def login_page(request: Request):
+    if get_current_instructor_id(request):
+        return RedirectResponse(url="/dashboard", status_code=303)
+    return templates.TemplateResponse(request=request, name="login.html", context={"error": None, "active_tab": "student"})
+
+@router.post("/login", response_class=HTMLResponse)
+def instructor_login_action(request: Request, username: str = Form(...), password: str = Form(...)):
     conn = get_db()
     instructor = conn.execute(
         "SELECT * FROM instructors WHERE username = ? AND password_hash = ?",
@@ -40,13 +47,22 @@ def instructor_login_action(username: str = Form(...), password: str = Form(...)
     conn.close()
     
     if not instructor:
-        return HTMLResponse("<h3>بيانات الدخول غير صحيحة! <a href='/portal'>حاول مرة أخرى</a></h3>")
+        return templates.TemplateResponse(
+            request=request, 
+            name="login.html", 
+            context={"error": "اسم المستخدم أو كلمة المرور غير صحيحة!", "active_tab": "teacher"}
+        )
     if instructor["status"] != "active":
-        return HTMLResponse("<h3>تم إيقاف هذا الحساب مؤقتًا. تواصل مع إدارة ROOT ACCESS.</h3>")
+        return templates.TemplateResponse(
+            request=request, 
+            name="login.html", 
+            context={"error": "تم إيقاف هذا الحساب مؤقتًا. تواصل مع الإدارة.", "active_tab": "teacher"}
+        )
         
     response = RedirectResponse(url="/dashboard", status_code=303)
     response.set_cookie(key="instructor_id", value=str(instructor["id"]), httponly=True)
     return response
+
 
 @router.get("/logout")
 def logout_action():
@@ -69,3 +85,8 @@ def master_login_action(username: str = Form(...), password: str = Form(...)):
         response.set_cookie(key="master_session", value=MASTER_SESSION_TOKEN, httponly=True)
         return response
     return HTMLResponse("<h3>بيانات المالك غير صحيحة! <a href='/master-login'>حاول مرة أخرى</a></h3>")
+
+# 4. صفحة سياسة الخصوصية وشروط الاستخدام
+@router.get("/privacy", response_class=HTMLResponse)
+def privacy_page(request: Request):
+    return templates.TemplateResponse(request=request, name="privacy.html")

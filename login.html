@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROOT ACCESS - بوابة الدخول الموحدة</title>
+    <title>ROOT ACCESS - بوابة الدخول</title>
     <link href="https://googleapis.com" rel="stylesheet">
     <style>
         * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
@@ -19,9 +19,16 @@
             box-shadow: 0 25px 50px rgba(0,0,0,0.45); text-align: center;
         }
         .logo { font-size: 28px; font-weight: 800; color: #38bdf8; letter-spacing: 1px; margin-bottom: 4px; }
-        .subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
+        .subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 20px; }
 
-        /* أزرار التبديل بين الطالب والمعلم */
+        /* مربع رسالة الخطأ الأنيق */
+        .error-alert {
+            background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5;
+            padding: 10px 14px; border-radius: 8px; font-size: 14px; font-weight: 700;
+            margin-bottom: 20px; animation: shake 0.3s ease;
+        }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
         .role-switcher { 
             display: flex; background: #0f172a; padding: 5px; border-radius: 10px; 
             margin-bottom: 25px; border: 1px solid #334155;
@@ -33,27 +40,17 @@
         .role-btn.active-student { background: #10b981; color: white; }
         .role-btn.active-teacher { background: #0284c7; color: white; }
 
-        /* نماذج الدخول */
-        .form-section { display: none; animation: fadeIn 0.3s ease; }
+        .form-section { display: none; }
         .form-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         input { 
             width: 100%; padding: 12px 15px; margin-bottom: 15px; border-radius: 8px; 
             border: 1px solid #334155; background: #0f172a; color: white; font-size: 15px;
-            transition: border 0.3s;
         }
         input:focus { outline: none; border-color: #38bdf8; }
         
-        .submit-student { 
-            width: 100%; padding: 12px; background: linear-gradient(135deg, #059669, #10b981); 
-            color: white; font-weight: 700; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;
-        }
-        .submit-teacher { 
-            width: 100%; padding: 12px; background: linear-gradient(135deg, #0284c7, #38bdf8); 
-            color: #0f172a; font-weight: 800; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;
-        }
-        button[type="submit"]:hover { opacity: 0.92; transform: translateY(-1px); }
+        .submit-student { width: 100%; padding: 12px; background: linear-gradient(135deg, #059669, #10b981); color: white; font-weight: 700; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
+        .submit-teacher { width: 100%; padding: 12px; background: linear-gradient(135deg, #0284c7, #38bdf8); color: #0f172a; font-weight: 800; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -61,20 +58,21 @@
         <div class="logo">ROOT ACCESS</div>
         <div class="subtitle">اختر نوع الحساب للمتابعة إلى المنصة</div>
 
-        <!-- أزرار الاختيار -->
+        {% if error %}
+        <div class="error-alert">⚠️ {{ error }}</div>
+        {% endif %}
+
         <div class="role-switcher">
-            <button type="button" id="btn-student" class="role-btn active-student" onclick="selectRole('student')">🎓 أنا طالب</button>
+            <button type="button" id="btn-student" class="role-btn" onclick="selectRole('student')">🎓 أنا طالب</button>
             <button type="button" id="btn-teacher" class="role-btn" onclick="selectRole('teacher')">👨‍🏫 أنا معلم</button>
         </div>
 
-        <!-- نموذج دخول الطالب -->
-        <form id="form-student" class="form-section active" action="/student-login" method="post">
+        <form id="form-student" class="form-section" action="/student-login" method="post">
             <input type="email" name="email" placeholder="البريد الإلكتروني المسجل" required>
             <input type="text" name="access_code" placeholder="رمز الدخول (4 أرقام)" maxlength="4" required>
             <button type="submit" class="submit-student">دخول إلى دروسي</button>
         </form>
 
-        <!-- نموذج دخول المعلم -->
         <form id="form-teacher" class="form-section" action="/login" method="post">
             <input type="text" name="username" placeholder="اسم المستخدم" required>
             <input type="password" name="password" placeholder="كلمة المرور" required>
@@ -101,6 +99,9 @@
                 formStudent.classList.remove('active');
             }
         }
+
+        // تفعيل التبويب المناسب تلقائيًا عند تحميل الصفحة
+        selectRole("{{ active_tab or 'student' }}");
     </script>
 </body>
 </html>

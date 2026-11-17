@@ -18,7 +18,11 @@ def student_login_action(request: Request, email: str = Form(...), access_code: 
     
     if not student:
         conn.close()
-        return HTMLResponse("<h3>البريد الإلكتروني أو رمز الدخول غير صحيح! <a href='/portal'>حاول مرة أخرى</a></h3>")
+        return templates.TemplateResponse(
+            request=request, 
+            name="login.html", 
+            context={"error": "البريد الإلكتروني أو رمز الدخول (PIN) غير صحيح!", "active_tab": "student"}
+        )
     
     inst_id = student["instructor_id"]
     lessons = conn.execute("SELECT * FROM lessons WHERE course = ? AND instructor_id = ?", (student["course"], inst_id)).fetchall()
@@ -30,6 +34,7 @@ def student_login_action(request: Request, email: str = Form(...), access_code: 
         name="student_portal.html", 
         context={"student": student, "lessons": lessons, "has_quiz": len(quizzes) > 0}
     )
+
 
 @router.post("/student-exam", response_class=HTMLResponse)
 def student_exam_page(request: Request, email: str = Form(...), access_code: str = Form(...)):

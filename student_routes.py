@@ -73,8 +73,11 @@ async def submit_quiz(request: Request):
     score = 0
     total = len(quizzes)
     for q in quizzes:
-        if form_data.get(f"q_{q['id']}") == q["correct_opt"]:
+        user_ans = str(form_data.get(f"q_{q['id']}", "")).strip()
+        corr_ans = str(q["correct_opt"]).strip()
+        if user_ans and (user_ans == corr_ans or f"opt{user_ans}" == corr_ans):
             score += 1
+
             
     cert_id = f"RA-{random.randint(100000, 999999)}"
     conn.execute(

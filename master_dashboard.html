@@ -78,7 +78,11 @@
                             <span class="badge-suspended">موقوف</span>
                             {% endif %}
                         </td>
-                        <td style="display: flex; gap: 6px;">
+                                                <td style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                            <form action="/master/reset-password/{{ inst.id }}" method="post" style="display: flex; gap: 4px; margin: 0;">
+                                <input type="text" name="new_password" placeholder="كلمة مرور جديدة" required style="min-width: 115px; width: 115px; padding: 5px 8px; font-size: 12px;">
+                                <button type="submit" class="action-btn" style="color: #10b981; border-color: #10b981;">حفظ</button>
+                            </form>
                             <form action="/master/toggle-status/{{ inst.id }}" method="post" style="margin:0;">
                                 <button type="submit" class="action-btn">تفعيل / إيقاف</button>
                             </form>
@@ -88,6 +92,7 @@
                             </form>
                             {% endif %}
                         </td>
+                        
                     </tr>
                     {% endfor %}
                 </tbody>

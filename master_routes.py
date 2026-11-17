@@ -86,3 +86,15 @@ def delete_instructor(request: Request, instructor_id: int):
     conn.commit()
     conn.close()
     return RedirectResponse(url="/master", status_code=303)
+@router.post("/master/reset-password/{instructor_id}")
+def reset_instructor_password(request: Request, instructor_id: int, new_password: str = Form(...)):
+    if not is_master(request):
+        return RedirectResponse(url="/master-login", status_code=303)
+    conn = get_db()
+    conn.execute(
+        "UPDATE instructors SET password_hash = ? WHERE id = ?",
+        (hash_password(new_password.strip()), instructor_id)
+    )
+    conn.commit()
+    conn.close()
+    return RedirectResponse(url="/master", status_code=303)

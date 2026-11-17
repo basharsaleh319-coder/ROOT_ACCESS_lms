@@ -78,24 +78,16 @@
                             <span class="badge-suspended">موقوف</span>
                             {% endif %}
                         </td>
-                                              <td style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
-                            <!-- نموذج تغيير كلمة المرور -->
-                            <form action="/master/reset-password/{{ inst.id }}" method="post" style="display: flex; gap: 4px; margin: 0;">
-                                <input type="text" name="new_password" placeholder="كلمة سر جديدة" required style="padding: 4px 8px; font-size: 12px; width: 110px; min-width: unset;">
-                                <button type="submit" class="action-btn" style="background: #0284c7; border-color: #0284c7;">تغيير 🔑</button>
-                            </form>
-
+                        <td style="display: flex; gap: 6px;">
                             <form action="/master/toggle-status/{{ inst.id }}" method="post" style="margin:0;">
                                 <button type="submit" class="action-btn">تفعيل / إيقاف</button>
                             </form>
-                            
                             {% if inst.id != 1 %}
                             <form action="/master/delete-instructor/{{ inst.id }}" method="post" onsubmit="return confirm('حذف هذا العميل؟');" style="margin:0;">
                                 <button type="submit" class="action-btn" style="color: #ef4444;">حذف</button>
                             </form>
                             {% endif %}
                         </td>
-
                     </tr>
                     {% endfor %}
                 </tbody>

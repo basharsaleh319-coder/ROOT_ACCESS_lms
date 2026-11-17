@@ -28,13 +28,6 @@ def landing_page(request: Request):
 def login_page(request: Request):
     if get_current_instructor_id(request):
         return RedirectResponse(url="/dashboard", status_code=303)
-    return templates.TemplateResponse(request=request, name="login.html")
-
-# 2. بوابة دخول المدربين والطلاب
-@router.get("/portal", response_class=HTMLResponse)
-def login_page(request: Request):
-    if get_current_instructor_id(request):
-        return RedirectResponse(url="/dashboard", status_code=303)
     return templates.TemplateResponse(request=request, name="login.html", context={"error": None, "active_tab": "student"})
 
 @router.post("/login", response_class=HTMLResponse)

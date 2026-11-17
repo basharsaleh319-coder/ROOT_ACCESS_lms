@@ -20,7 +20,6 @@ def master_dashboard(request: Request):
     total_certs = conn.execute("SELECT COUNT(*) as c FROM quiz_results").fetchone()["c"]
     conn.close()
     
-    # حساب الإيرادات التقديرية بناءً على الباقات النشطة
     monthly_revenue = 0
     for inst in instructors:
         if inst["status"] == "active" and "الشهرية" in inst["plan"]:
@@ -44,7 +43,8 @@ def add_instructor(
     center_name: str = Form(...),
     username: str = Form(...),
     password: str = Form(...),
-    plan: str = Form(...)
+    plan: str = Form(...),
+    description: str = Form("")
 ):
     if not is_master(request):
         return RedirectResponse(url="/master-login", status_code=303)
@@ -52,13 +52,26 @@ def add_instructor(
     conn = get_db()
     try:
         conn.execute(
-            "INSERT INTO instructors (center_name, username, password_hash, plan) VALUES (?, ?, ?, ?)",
-            (center_name.strip(), username.strip(), hash_password(password.strip()), plan)
+            "INSERT INTO instructors (center_name, username, password_hash, plan, description) VALUES (?, ?, ?, ?, ?)",
+            (center_name.strip(), username.strip(), hash_password(password.strip()), plan, description.strip())
         )
         conn.commit()
     except Exception:
         conn.close()
         return HTMLResponse("<h3>اسم المستخدم موجود مسبقًا! اختر اسمًا آخر. <a href='/master'>رجوع</a></h3>")
+    conn.close()
+    return RedirectResponse(url="/master", status_code=303)
+
+@router.post("/master/reset-password/{instructor_id}")
+def reset_instructor_password(request: Request, instructor_id: int, new_password: str = Form(...)):
+    if not is_master(request):
+        return RedirectResponse(url="/master-login", status_code=303)
+    conn = get_db()
+    conn.execute(
+        "UPDATE instructors SET password_hash = ? WHERE id = ?",
+        (hash_password(new_password.strip()), instructor_id)
+    )
+    conn.commit()
     conn.close()
     return RedirectResponse(url="/master", status_code=303)
 
@@ -83,18 +96,6 @@ def delete_instructor(request: Request, instructor_id: int):
         return HTMLResponse("<h3>لا يمكن حذف حساب التجربة الافتراضي! <a href='/master'>رجوع</a></h3>")
     conn = get_db()
     conn.execute("DELETE FROM instructors WHERE id = ?", (instructor_id,))
-    conn.commit()
-    conn.close()
-    return RedirectResponse(url="/master", status_code=303)
-@router.post("/master/reset-password/{instructor_id}")
-def reset_instructor_password(request: Request, instructor_id: int, new_password: str = Form(...)):
-    if not is_master(request):
-        return RedirectResponse(url="/master-login", status_code=303)
-    conn = get_db()
-    conn.execute(
-        "UPDATE instructors SET password_hash = ? WHERE id = ?",
-        (hash_password(new_password.strip()), instructor_id)
-    )
     conn.commit()
     conn.close()
     return RedirectResponse(url="/master", status_code=303)

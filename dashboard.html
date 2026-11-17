@@ -99,76 +99,51 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>        <div class="section-card">
+               <div class="section-card">
             <h2>🎬 إدارة الدروس والمواد</h2>
             <form action="/add-lesson" method="post" class="add-form">
                 <input type="text" name="title" placeholder="عنوان الدرس" required>
                 <input type="text" name="course" placeholder="اسم المادة التابع لها" required>
-                <input type="url" name="video_url" placeholder="رابط الفيديو (YouTube / Drive)" required>
+                <input type="text" name="description" placeholder="وصف الدرس أو ملاحظات للطلاب (اختياري)">
+                <input type="url" name="video_url" placeholder="رابط الفيديو (YouTube / Drive - اختياري)">
                 <button type="submit" class="primary-btn">+ إضافة درس</button>
             </form>
-            <table>
-                <thead>
-                    <tr><th>#</th><th>عنوان الدرس</th><th>المادة</th><th>الفيديو</th><th>إجراء</th></tr>
-                </thead>
-                <tbody>
-                    {% for lesson in lessons %}
-                    <tr>
-                        <td>{{ lesson.id }}</td><td><strong>{{ lesson.title }}</strong></td><td>{{ lesson.course }}</td>
-                        <td><a href="{{ lesson.video_url }}" target="_blank" class="btn-link">فتح الفيديو ↗</a></td>
-                        <td>
-                            <form action="/delete-lesson/{{ lesson.id }}" method="post" onsubmit="return confirm('حذف هذا الدرس؟');" style="margin:0;">
-                                <button type="submit" class="del-btn">حذف 🗑️</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="5" style="text-align: center; color: #64748b;">لا توجد دروس مضافة حاليًا.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="section-card">
-            <h2>📝 إنشاء امتحان (إضافة عدة أسئلة معًا)</h2>
-            <form action="/add-bulk-quiz" method="post" style="margin-top: 15px;">
+                    <div class="section-card">
+            <h2>📝 إدارة أسئلة الامتحانات</h2>
+            <form action="/add-bulk-quiz" method="post">
                 <div style="margin-bottom: 15px;">
-                    <input type="text" name="course" placeholder="اكتب اسم المادة التابع لها هذا الامتحان (مثال: C#)" style="width: 100%; border: 2px solid #0284c7;" required>
+                    <input type="text" name="course" placeholder="اسم المادة التابع لها الامتحان" required style="width: 100%; max-width: 350px;">
                 </div>
-
                 <div id="questions-container">
                     <div class="question-row">
-                        <input type="text" name="question" placeholder="نص السؤال 1" style="flex: 100%;" required>
+                        <input type="text" name="question" placeholder="نص السؤال" required style="flex: 2; min-width: 220px;">
                         <input type="text" name="opt1" placeholder="الخيار 1" required>
                         <input type="text" name="opt2" placeholder="الخيار 2" required>
                         <input type="text" name="opt3" placeholder="الخيار 3" required>
-                        <select name="correct_opt" required>
-                            <option value="" disabled selected>الإجابة الصحيحة</option>
-                            <option value="1">الخيار 1</option>
-                            <option value="2">الخيار 2</option>
-                            <option value="3">الخيار 3</option>
-                             <option value="4">الخيار 4</option>
+                        <select name="correct_opt" required style="max-width: 150px;">
+                            <option value="opt1">الصحيح: الخيار 1</option>
+                            <option value="opt2">الصحيح: الخيار 2</option>
+                            <option value="opt3">الصحيح: الخيار 3</option>
                         </select>
                     </div>
                 </div>
-
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button type="button" class="success-btn" onclick="addMoreQuestion()">+ إضافة سؤال آخر للنموذج</button>
-                    <button type="submit" class="primary-btn">💾 حفظ جميع الأسئلة في الامتحان</button>
+                <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
+                    <button type="button" class="edit-btn" onclick="addQuestionRow()">+ إضافة سؤال آخر</button>
+                    <button type="submit" class="success-btn">حفظ الأسئلة</button>
                 </div>
             </form>
 
-            <h3 style="margin-top: 30px; font-size: 16px; color: #475569;">الأسئلة المحفوظة حاليًا:</h3>
-            <table>
+            <table style="margin-top: 20px;">
                 <thead>
-                    <tr><th>المادة</th><th>السؤال</th><th>الخيارات</th><th>الصحيح</th><th>إجراء</th></tr>
+                    <tr><th>#</th><th>المادة</th><th>السؤال</th><th>الإجابة الصحيحة</th><th>إجراء</th></tr>
                 </thead>
                 <tbody>
                     {% for q in quizzes %}
                     <tr>
-                        <td>{{ q.course }}</td><td><strong>{{ q.question }}</strong></td>
-                        <td>1) {{ q.opt1 }} | 2) {{ q.opt2 }} | 3) {{ q.opt3 }}</td>
-                        <td><span class="score-badge">خيار {{ q.correct_opt }}</span></td>
+                        <td>{{ q.id }}</td>
+                        <td>{{ q.course }}</td>
+                        <td>{{ q.question }}</td>
+                        <td><span class="score-badge">{{ q[q.correct_opt] }}</span></td>
                         <td>
                             <form action="/delete-quiz/{{ q.id }}" method="post" onsubmit="return confirm('حذف هذا السؤال؟');" style="margin:0;">
                                 <button type="submit" class="del-btn">حذف 🗑️</button>
@@ -176,47 +151,49 @@
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="5" style="text-align: center; color: #64748b;">لم يتم إضافة أسئلة بعد.</td></tr>
+                    <tr><td colspan="5" style="text-align: center; color: #64748b;">لا توجد أسئلة مضافة حاليًا.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
         <div class="section-card">
-            <h2>🏆 نتائج الامتحانات والشهادات الصادرة</h2>
+            <h2>🏆 نتائج الطلاب والشهادات الصادرة</h2>
             <table>
                 <thead>
-                    <tr><th>اسم الطالب</th><th>المادة</th><th>النتيجة</th><th>الشهادة المعتمدة</th><th>إجراء</th></tr>
+                    <tr><th>#</th><th>اسم الطالب</th><th>المادة</th><th>النتيجة</th><th>رقم الشهادة</th><th>التحقق</th><th>إجراء</th></tr>
                 </thead>
                 <tbody>
                     {% for res in results %}
                     <tr>
-                        <td><strong>{{ res.student_name }}</strong></td><td>{{ res.course }}</td>
-                        <td><span class="score-badge">{{ res.score }} من {{ res.total }}</span></td>
-                        <td><a href="/certificate/{{ res.cert_id }}" target="_blank" class="btn-link">{{ res.cert_id }} ↗</a></td>
+                        <td>{{ res.id }}</td>
+                        <td><strong>{{ res.student_name }}</strong></td>
+                        <td>{{ res.course }}</td>
+                        <td><span class="score-badge">{{ res.score }} / {{ res.total }}</span></td>
+                        <td style="font-family: monospace; color: #0284c7; font-weight: 700;">{{ res.cert_id }}</td>
+                        <td><a href="/verify?cert_id={{ res.cert_id }}" target="_blank" class="btn-link">معاينة ↗</a></td>
                         <td>
-                            <form action="/delete-result/{{ res.id }}" method="post" onsubmit="return confirm('حذف هذه الشهادة؟');" style="margin:0;">
+                            <form action="/delete-result/{{ res.id }}" method="post" onsubmit="return confirm('حذف هذه النتيجة؟');" style="margin:0;">
                                 <button type="submit" class="del-btn">حذف 🗑️</button>
                             </form>
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="5" style="text-align: center; color: #64748b;">لا توجد نتائج مسجلة بعد.</td></tr>
+                    <tr><td colspan="7" style="text-align: center; color: #64748b;">لا توجد نتائج مسجلة بعد.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
-
     <div id="editModal" class="modal">
         <div class="modal-content">
-            <h2 style="margin-bottom: 20px;">✏️ تعديل بيانات الطالب</h2>
-            <form id="editStudentForm" method="post">
+            <h3 style="margin-top: 0; color: #0f172a;">✏️ تعديل بيانات الطالب</h3>
+            <form id="editForm" method="post">
                 <input type="text" id="editName" name="name" placeholder="اسم الطالب" required>
                 <input type="email" id="editEmail" name="email" placeholder="البريد الإلكتروني" required>
-                <input type="text" id="editCourse" name="course" placeholder="المادة" required>
+                <input type="text" id="editCourse" name="course" placeholder="اسم المادة" required>
                 <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="primary-btn" style="flex: 1;">حفظ التعديل</button>
+                    <button type="submit" class="primary-btn" style="flex: 1;">حفظ التعديلات</button>
                     <button type="button" class="del-btn" onclick="closeEditModal()">إلغاء</button>
                 </div>
             </form>
@@ -224,35 +201,32 @@
     </div>
 
     <script>
-        let qCount = 1;
-        function addMoreQuestion() {
-            qCount++;
+        function addQuestionRow() {
             const container = document.getElementById('questions-container');
-            const div = document.createElement('div');
-            div.className = 'question-row';
-            div.innerHTML = `
-                <input type="text" name="question" placeholder="نص السؤال ${qCount}" style="flex: 100%;" required>
+            const row = document.createElement('div');
+            row.className = 'question-row';
+            row.innerHTML = `
+                <input type="text" name="question" placeholder="نص السؤال" required style="flex: 2; min-width: 220px;">
                 <input type="text" name="opt1" placeholder="الخيار 1" required>
                 <input type="text" name="opt2" placeholder="الخيار 2" required>
                 <input type="text" name="opt3" placeholder="الخيار 3" required>
-                <select name="correct_opt" required>
-                    <option value="" disabled selected>الإجابة الصحيحة</option>
-                    <option value="1">الخيار 1</option>
-                    <option value="2">الخيار 2</option>
-                    <option value="3">الخيار 3</option>
+                <select name="correct_opt" required style="max-width: 150px;">
+                    <option value="opt1">الصحيح: الخيار 1</option>
+                    <option value="opt2">الصحيح: الخيار 2</option>
+                    <option value="opt3">الصحيح: الخيار 3</option>
                 </select>
-                <button type="button" class="del-btn" onclick="this.parentElement.remove()">إزالة ✕</button>
             `;
-            container.appendChild(div);
+            container.appendChild(row);
         }
 
         function openEditModal(id, name, email, course) {
-            document.getElementById('editStudentForm').action = '/edit-student/' + id;
+            document.getElementById('editForm').action = '/edit-student/' + id;
             document.getElementById('editName').value = name;
             document.getElementById('editEmail').value = email;
             document.getElementById('editCourse').value = course;
             document.getElementById('editModal').style.display = 'flex';
         }
+
         function closeEditModal() {
             document.getElementById('editModal').style.display = 'none';
         }
@@ -260,3 +234,33 @@
 </body>
 </html>
 
+            <table>
+                <thead>
+                    <tr><th>#</th><th>عنوان الدرس</th><th>المادة</th><th>الوصف</th><th>الفيديو</th><th>إجراء</th></tr>
+                </thead>
+                <tbody>
+                    {% for lesson in lessons %}
+                    <tr>
+                        <td>{{ lesson.id }}</td>
+                        <td><strong>{{ lesson.title }}</strong></td>
+                        <td>{{ lesson.course }}</td>
+                        <td style="color: #64748b;">{{ lesson.description or '—' }}</td>
+                        <td>
+                            {% if lesson.video_url %}
+                            <a href="{{ lesson.video_url }}" target="_blank" class="btn-link">مشاهدة ↗</a>
+                            {% else %}
+                            <span style="color: #94a3b8;">درس نصي</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form action="/delete-lesson/{{ lesson.id }}" method="post" onsubmit="return confirm('حذف هذا الدرس؟');" style="margin:0;">
+                                <button type="submit" class="del-btn">حذف 🗑️</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" style="text-align: center; color: #64748b;">لا توجد دروس مضافة حاليًا.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>

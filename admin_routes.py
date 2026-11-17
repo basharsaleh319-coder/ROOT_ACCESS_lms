@@ -35,7 +35,6 @@ def dashboard_page(request: Request):
         }
     )
 
-# --- إدارة الطلاب ---
 @router.post("/add-student")
 def add_student(request: Request, name: str = Form(...), email: str = Form(...), course: str = Form(...)):
     inst_id = get_current_instructor_id(request)
@@ -76,16 +75,21 @@ def delete_student(request: Request, student_id: int):
     conn.close()
     return RedirectResponse(url="/dashboard", status_code=303)
 
-# --- إدارة الدروس والمواد ---
 @router.post("/add-lesson")
-def add_lesson(request: Request, title: str = Form(...), course: str = Form(...), video_url: str = Form(...)):
+def add_lesson(
+    request: Request,
+    title: str = Form(...),
+    course: str = Form(...),
+    video_url: str = Form(""),
+    description: str = Form("")
+):
     inst_id = get_current_instructor_id(request)
     if not inst_id:
         return RedirectResponse(url="/portal", status_code=303)
     conn = get_db()
     conn.execute(
-        "INSERT INTO lessons (instructor_id, title, course, video_url) VALUES (?, ?, ?, ?)",
-        (inst_id, title.strip(), course.strip(), video_url.strip())
+        "INSERT INTO lessons (instructor_id, title, course, video_url, description) VALUES (?, ?, ?, ?, ?)",
+        (inst_id, title.strip(), course.strip(), video_url.strip(), description.strip())
     )
     conn.commit()
     conn.close()
@@ -117,7 +121,6 @@ def rename_course(request: Request, old_course: str = Form(...), new_course: str
     conn.close()
     return RedirectResponse(url="/dashboard", status_code=303)
 
-# --- إدارة الامتحانات والشهادات ---
 @router.post("/add-bulk-quiz")
 async def add_bulk_quiz(request: Request):
     inst_id = get_current_instructor_id(request)

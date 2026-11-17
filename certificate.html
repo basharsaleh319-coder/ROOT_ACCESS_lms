@@ -2,51 +2,259 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>شهادة إتمام دورة - {{ record.student_name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شهادة إتمام — {{ record.student_name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
     <link href="https://googleapis.com" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-        body { background: #e2e8f0; display: flex; flex-direction: column; align-items: center; padding: 30px; margin: 0; }
-        .cert-border { 
-            width: 850px; background: white; padding: 50px; 
-            border: 14px solid #0f172a; outline: 4px solid #0284c7; outline-offset: -22px; 
-            text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.15); position: relative;
+        @page { size: A4 landscape; margin: 0; }
+        * { box-sizing: border-box; }
+        body {
+            background: #060b14;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 30px 15px;
+            margin: 0;
+            font-family: 'Cairo', sans-serif;
         }
-        .brand { color: #0284c7; font-size: 22px; font-weight: 800; letter-spacing: 2px; }
-        h1 { font-size: 38px; color: #0f172a; margin: 15px 0 10px; font-weight: 800; }
-        .subtitle { font-size: 17px; color: #475569; margin: 8px 0; }
-        .student-name { 
-            font-size: 32px; color: #0284c7; font-weight: 800; margin: 20px 0; 
-            border-bottom: 2px solid #cbd5e1; display: inline-block; padding: 0 50px 8px; 
+
+        .cert-wrapper {
+            width: 100%;
+            max-width: 960px;
+            background: #fffdf9;
+            background-image: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.06), transparent 70%);
+            padding: 18px;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.65);
+            position: relative;
         }
-        .course-name { font-size: 24px; color: #0f172a; font-weight: 800; margin: 12px 0; }
-        .footer { 
-            display: flex; justify-content: space-between; margin-top: 45px; 
-            padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 14px; color: #64748b; 
+
+        .outer-frame {
+            border: 4px solid #0f172a;
+            padding: 8px;
+            position: relative;
         }
-        .print-btn { 
-            margin-top: 25px; padding: 12px 28px; background: #0284c7; color: white; 
-            border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 700; 
+
+        .inner-frame {
+            border: 2px solid #c59b27;
+            padding: 40px 50px 35px;
+            text-align: center;
+            position: relative;
         }
-        .print-btn:hover { background: #0369a1; }
-        @media print { .print-btn { display: none; } body { background: white; padding: 0; } }
+
+        /* زخارف الزوايا الذهبية */
+        .corner {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border: 4px solid #c59b27;
+        }
+        .c-tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+        .c-tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+        .c-bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+        .c-br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+
+        .top-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 6px 22px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            border: 1px solid #c59b27;
+        }
+        .top-badge span { color: #10b981; }
+
+        h1 {
+            font-family: 'Amiri', serif;
+            font-size: 46px;
+            color: #0f172a;
+            margin: 16px 0 6px;
+            line-height: 1.2;
+        }
+
+        .gold-divider {
+            width: 180px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #c59b27, transparent);
+            margin: 0 auto 18px;
+        }
+
+        .subtitle {
+            font-size: 17px;
+            color: #475569;
+            margin: 6px 0;
+            font-weight: 600;
+        }
+        .student-name {
+            font-family: 'Amiri', serif;
+            font-size: 40px;
+            color: #0f172a;
+            font-weight: 700;
+            margin: 12px 0 14px;
+            padding: 0 55px 6px;
+            border-bottom: 2px solid #c59b27;
+            display: inline-block;
+        }
+
+        .course-box {
+            background: rgba(15, 23, 42, 0.04);
+            border: 1px solid rgba(197, 155, 39, 0.45);
+            padding: 10px 32px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 10px 0 14px;
+        }
+        .course-name {
+            font-size: 24px;
+            color: #0f172a;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .score-text {
+            font-size: 16px;
+            color: #334155;
+            margin: 6px 0 0;
+        }
+        .score-text strong {
+            color: #059669;
+            font-weight: 800;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 32px;
+            padding-top: 18px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 14px;
+            color: #475569;
+            gap: 15px;
+        }
+
+        .footer-item { text-align: center; min-width: 170px; }
+        .footer-item small { display: block; color: #64748b; font-size: 12px; margin-bottom: 3px; }
+        .footer-item strong { color: #0f172a; font-size: 15px; }
+
+        /* الختم الرقمي الذهبي */
+        .seal {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            border: 3px double #c59b27;
+            background: radial-gradient(circle, #fffbeb, #fef3c7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #92400e;
+            font-weight: 900;
+            font-size: 11px;
+            box-shadow: 0 4px 12px rgba(197, 155, 39, 0.25);
+            transform: rotate(-8deg);
+        }
+        .seal span {
+            font-size: 18px;
+            color: #059669;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+
+        .actions {
+            margin-top: 24px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .print-btn {
+            padding: 13px 30px;
+            background: #10b981;
+            color: #04100a;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 800;
+            font-family: 'Cairo', sans-serif;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+        .print-btn:hover { background: #34d399; }
+
+        .verify-link {
+            padding: 13px 24px;
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            font-size: 15px;
+            text-decoration: none;
+            font-weight: 700;
+        }
+        .verify-link:hover { border-color: #10b981; }
+
+        @media print {
+            .actions { display: none; }
+            body { background: white; padding: 0; }
+            .cert-wrapper { box-shadow: none; max-width: 100%; width: 100%; }
+        }
     </style>
 </head>
 <body>
-    <div class="cert-border">
-        <div class="brand">ROOT ACCESS ACADEMY</div>
-        <h1>شهادة إتمام دورة تدريبية</h1>
-        <p class="subtitle">تشهد إدارة المنصة بأن المتدرب/ة:</p>
-        <div class="student-name">{{ record.student_name }}</div>
-        <p class="subtitle">قد أتم بنجاح متطلبات الدورة التدريبية بعنوان:</p>
-        <div class="course-name">« {{ record.course }} »</div>
-        <p class="subtitle">واجتاز الاختبار التقييمي بدرجة <strong>{{ record.score }} من {{ record.total }}</strong></p>
-        
-        <div class="footer">
-            <span>تاريخ الإصدار: <strong>{{ issue_date }}</strong></span>
-            <span>رقم التحقق الإلكتروني: <strong style="font-family: monospace; font-size: 15px;">{{ record.cert_id }}</strong></span>
+    <div class="cert-wrapper">
+        <div class="outer-frame">
+            <div class="inner-frame">
+                <div class="corner c-tl"></div>
+                <div class="corner c-tr"></div>
+                <div class="corner c-bl"></div>
+                <div class="corner c-br"></div>
 
+                <div class="top-badge">ROOT <span>ACCESS</span> ACADEMY</div>
+                <h1>شهادة إتمام واجتياز</h1>
+                <div class="gold-divider"></div>
+
+                <p class="subtitle">تشهد إدارة المنصة الأكاديمية بأن المتدرب/ة:</p>
+                <div class="student-name">{{ record.student_name }}</div>
+
+                <p class="subtitle">قد أتمّ بنجاح جميع المتطلبات التدريبية للدورة بعنوان:</p>
+                <div class="course-box">
+                    <div class="course-name">« {{ record.course }} »</div>
+                </div>
+
+                <p class="score-text">واجتاز الاختبار التقييمي بنجاح بدرجة <strong>{{ record.score }} من {{ record.total }}</strong></p>
+
+                <div class="footer">
+                    <div class="footer-item">
+                        <small>تاريخ الإصدار</small>
+                        <strong>{{ issue_date }}</strong>
+                    </div>
+
+                    <div class="seal">
+                        <span>✔</span>
+                        VERIFIED<br>CERTIFICATE
+                    </div>
+
+                    <div class="footer-item">
+                        <small>رقم التحقق الإلكتروني</small>
+                        <strong style="font-family: monospace; letter-spacing: 1px;">{{ record.cert_id }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <button onclick="window.print()" class="print-btn">🖨️ طباعة الشهادة أو حفظها كـ PDF</button>
+
+    <div class="actions">
+        <button onclick="window.print()" class="print-btn">🖨️ طباعة الشهادة أو حفظها كـ PDF</button>
+        <a href="/verify?cert_id={{ record.cert_id }}" class="verify-link">🔍 صفحة التحقق من الشهادة</a>
+    </div>
 </body>
 </html>

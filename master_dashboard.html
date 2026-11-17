@@ -46,11 +46,12 @@
             <div class="stat-card"><div class="stat-title">الإيراد الشهري المتوقع</div><div class="stat-num" style="color: #10b981;">{{ monthly_revenue }} ₪</div></div>
         </div>
 
-        <div class="section-card">
+               <div class="section-card">
             <h2>➕ إضافة مدرب أو مركز تعليمي جديد</h2>
             <form action="/master/add-instructor" method="post" class="add-form">
                 <input type="text" name="center_name" placeholder="اسم المدرب أو المركز التعليمي" required>
                 <input type="text" name="username" placeholder="اسم المستخدم للدخول (إنجليزي)" required>
+                <input type="text" name="description" placeholder="وصف / ملاحظات (هاتف، مدرسة، تفاصيل)">
                 <input type="text" name="password" placeholder="كلمة المرور للمدرب" required>
                 <select name="plan" required>
                     <option value="الباقة الشهرية (150 ₪)">الباقة الشهرية (150 ₪)</option>
@@ -62,7 +63,7 @@
 
             <table>
                 <thead>
-                    <tr><th>#</th><th>اسم المركز / المدرب</th><th>اسم المستخدم</th><th>الباقة</th><th>الحالة</th><th>تحكم</th></tr>
+                    <tr><th>#</th><th>اسم المركز / المدرب</th><th>اسم المستخدم</th><th>الباقة</th><th>الوصف / ملاحظات</th><th>الحالة</th><th>تحكم</th></tr>
                 </thead>
                 <tbody>
                     {% for inst in instructors %}
@@ -71,6 +72,7 @@
                         <td><strong>{{ inst.center_name }}</strong></td>
                         <td style="font-family: monospace; color: #38bdf8;">{{ inst.username }}</td>
                         <td>{{ inst.plan }}</td>
+                        <td style="color: #94a3b8;">{{ inst.description or '—' }}</td>
                         <td>
                             {% if inst.status == 'active' %}
                             <span class="badge-active">نشط</span>
@@ -78,7 +80,7 @@
                             <span class="badge-suspended">موقوف</span>
                             {% endif %}
                         </td>
-                                                <td style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                        <td style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
                             <form action="/master/reset-password/{{ inst.id }}" method="post" style="display: flex; gap: 4px; margin: 0;">
                                 <input type="text" name="new_password" placeholder="كلمة مرور جديدة" required style="min-width: 115px; width: 115px; padding: 5px 8px; font-size: 12px;">
                                 <button type="submit" class="action-btn" style="color: #10b981; border-color: #10b981;">حفظ</button>
@@ -92,7 +94,6 @@
                             </form>
                             {% endif %}
                         </td>
-                        
                     </tr>
                     {% endfor %}
                 </tbody>

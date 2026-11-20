@@ -100,7 +100,7 @@
             currentStudentEmail = email;
             document.getElementById("login_section").style.display = "none";
             document.getElementById("classes_section").style.display = "block";
-            document.getElementById("student_welcome").innerText = `أهلاً بك، ${classes.student_name}`;
+            document.getElementById("student_welcome").innerText = `أهلاً بك، ${classes[0].student_name}`;
 
             const grid = document.getElementById("student_classes_grid"); grid.innerHTML = "";
             classes.forEach(c => {
@@ -145,13 +145,19 @@
         }
 
         async function loadStudentQuizzes(classId) {
-            const res = await fetch(`/api/teacher/classes/${classId}/quizzes`), quizzes = await res.json(), div = document.getElementById("panel_quizzes");
+            const res = await fetch(`/api/teacher/classes/${classId}/quizzes`);
+            const quizzes = await res.json();
+            const div = document.getElementById("panel_quizzes");
             div.innerHTML = quizzes.length ? "" : "<p style='color:#9ca3af;'>لا توجد اختبارات متاحة حالياً.</p>";
-            quizzes.forEach(q => { div.innerHTML += `<div style="border:1px solid #00ff88; background:#050505; padding:15px; border-radius:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;"><div><h4 style="margin:0; color:#00ff88;">${q.title}</h4><small style="color:#9ca3af;">${q.created_at}</small></div><button class="btn" style="background:#00ff88; color:#050505;" onclick="startQuiz(${q.id}, '${q.title}')">بدء الاختبار ⬅</button></div>`; });
+            quizzes.forEach(q => {
+                div.innerHTML += `<div style="border:1px solid #00ff88; background:#050505; padding:15px; border-radius:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;"><div><h4 style="margin:0; color:#00ff88;">${q.title}</h4><small style="color:#9ca3af;">${q.created_at}</small></div><button class="btn" style="background:#00ff88; color:#050505;" onclick="startQuiz(${q.id}, '${q.title}')">بدء الاختبار الآن ⬅</button></div>`;
+            });
         }
 
         async function startQuiz(quizId, title) {
-            const res = await fetch(`/api/student/quizzes/${quizId}/questions`), questions = await res.json(), div = document.getElementById("panel_quizzes");
+            const res = await fetch(`/api/student/quizzes/${quizId}/questions`);
+            const questions = await res.json();
+            const div = document.getElementById("panel_quizzes");
             if (questions.length === 0) { div.innerHTML = "<p style='color:#ef4444;'>لم يضف المعلم أسئلة لهذا الاختبار بعد.</p>"; return; }
             let html = `<h3 style="color:#00ff88; margin-top:0;">📝 ${title}</h3><form id="solveQuizForm">`;
             questions.forEach((q, idx) => {

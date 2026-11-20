@@ -3,282 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROOT ACCESS — بوابة الدخول</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com" rel="stylesheet">
+    <title>بوابة الدخول - ROOT ACCESS LMS</title>
     <style>
-        * { box-sizing: border-box; }
-        body {
-            background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.16), #060b14 65%);
-            background-color: #060b14;
-            color: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            font-family: 'Cairo', 'Heebo', 'Inter', sans-serif;
+        :root {
+            --bg-black: #050505; --card-dark: #0d1117; --border-dark: #1f2937;
+            --neon-green: #00ff88; --neon-dim: rgba(0, 255, 136, 0.12);
+            --danger: #ef4444; --text-main: #f3f4f6; --text-muted: #9ca3af;
         }
-        html[lang="he"] body { font-family: 'Heebo', sans-serif; }
-        html[lang="en"] body { font-family: 'Inter', sans-serif; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background-color: var(--bg-black); color: var(--text-main); margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        
+        header {
+            background: var(--card-dark); padding: 15px 30px; border-bottom: 1px solid var(--neon-green);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .brand { font-size: 20px; font-weight: bold; color: var(--neon-green); letter-spacing: 1.5px; text-shadow: 0 0 8px rgba(0, 255, 136, 0.4); }
+        
+        .wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .portal-card {
+            background: var(--card-dark); border: 1px solid var(--neon-green); border-radius: 14px;
+            width: 100%; max-width: 440px; padding: 30px; box-shadow: 0 0 35px rgba(0, 255, 136, 0.12);
+        }
 
-        .top-bar {
-            width: 100%;
-            max-width: 420px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
+        .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
+        .tab-btn {
+            padding: 12px; background: var(--bg-black); color: var(--text-muted);
+            border: 1px solid var(--border-dark); border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;
         }
-        .back-link {
-            color: #94a3b8;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 700;
-            transition: color 0.2s;
-        }
-        .back-link:hover { color: #10b981; }
+        .tab-btn.active { background: var(--neon-green); color: #050505; border-color: var(--neon-green); }
 
-        .lang-switcher {
-            display: flex;
-            background: #0f172a;
-            border: 1px solid #1e293b;
-            border-radius: 8px;
-            padding: 3px;
-        }
-        .lang-btn {
-            background: transparent;
-            border: none;
-            color: #94a3b8;
-            padding: 4px 10px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            border-radius: 6px;
-            font-family: inherit;
-        }
-        .lang-btn.active { background: #10b981; color: #04100a; }
+        .form-box { display: none; }
+        .form-box.active { display: block; }
 
-        .card {
-            background: rgba(15, 23, 42, 0.92);
-            backdrop-filter: blur(12px);
-            border: 1px solid #1e293b;
-            padding: 34px 28px;
-            border-radius: 18px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 25px 55px rgba(0, 0, 0, 0.65);
-            text-align: center;
-        }
-        .logo {
-            font-size: 26px;
-            font-weight: 900;
-            color: #f8fafc;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .logo span { color: #10b981; }
-        .logo-dot { width: 10px; height: 10px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; }
-        .subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 22px; }
-
-        .error-alert {
-            background: rgba(239, 68, 68, 0.14);
-            border: 1px solid #ef4444;
-            color: #fca5a5;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 18px;
-        }
-        .role-switcher {
-            display: flex;
-            background: #060b14;
-            padding: 5px;
-            border-radius: 10px;
-            margin-bottom: 22px;
-            border: 1px solid #1e293b;
-        }
-        .role-btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background: transparent;
-            color: #94a3b8;
-            font-weight: 700;
-            font-size: 14px;
-            border-radius: 7px;
-            cursor: pointer;
-            transition: all 0.25s;
-            font-family: inherit;
-        }
-        .role-btn.active-student { background: #10b981; color: #04100a; font-weight: 800; }
-        .role-btn.active-teacher { background: #0284c7; color: #ffffff; font-weight: 800; }
-
-        .form-section { display: none; }
-        .form-section.active { display: block; }
-
+        label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
         input {
-            width: 100%;
-            padding: 12px 14px;
-            margin-bottom: 14px;
-            border-radius: 10px;
-            border: 1px solid #334155;
-            background: #060b14;
-            color: #f8fafc;
-            font-size: 15px;
-            font-family: inherit;
+            width: 100%; padding: 12px; margin-bottom: 16px; background: var(--bg-black);
+            border: 1px solid #374151; border-radius: 8px; color: white; font-size: 15px; outline: none;
         }
-        input:focus { outline: none; border-color: #10b981; }
+        input:focus { border-color: var(--neon-green); box-shadow: 0 0 8px rgba(0, 255, 136, 0.2); }
 
-        .submit-student {
-            width: 100%;
-            padding: 13px;
-            background: #10b981;
-            color: #04100a;
-            font-weight: 800;
-            font-size: 16px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: inherit;
+        .btn-neon {
+            width: 100%; padding: 13px; background: var(--neon-green); color: #050505;
+            border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s;
         }
-        .submit-student:hover { background: #34d399; }
+        .btn-neon:hover { background: #00cc6a; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
 
-        .submit-teacher {
-            width: 100%;
-            padding: 13px;
-            background: #0284c7;
-            color: #ffffff;
-            font-weight: 800;
-            font-size: 16px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: inherit;
+        .err-msg {
+            background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger);
+            color: #f87171; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; text-align: center;
         }
-        .submit-teacher:hover { background: #0ea5e9; }
     </style>
 </head>
 <body>
-    <div class="top-bar">
-        <a href="/" class="back-link" data-i18n="back_home">→ العودة للرئيسية</a>
-        <div class="lang-switcher">
-            <button type="button" class="lang-btn active" id="btn-ar" onclick="setLang('ar')">عربي</button>
-            <button type="button" class="lang-btn" id="btn-he" onclick="setLang('he')">עברית</button>
-            <button type="button" class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+    <header>
+        <div class="brand">ROOT ACCESS // PORTAL</div>
+        <a href="/" style="color:var(--text-muted); text-decoration:none; font-size:14px;">الرئيسية</a>
+    </header>
+
+    <div class="wrapper">
+        <div class="portal-card">
+            <h2 style="text-align:center; color:var(--neon-green); margin-top:0;">تسجيل الدخول إلى المنصة</h2>
+
+            {% if error %}
+            <div class="err-msg">✖ {{ error }}</div>
+            {% endif %}
+
+            <div class="tabs">
+                <button type="button" class="tab-btn active" id="btn_student" onclick="switchRole('student')">🎓 دخول الطالب</button>
+                <button type="button" class="tab-btn" id="btn_teacher" onclick="switchRole('teacher')">👨‍🏫 دخول المعلم</button>
+            </div>
+
+            <!-- نموذج دخول الطالب -->
+            <div id="box_student" class="form-box active">
+                <p style="color:var(--text-muted); font-size:13px; text-align:center; margin-top:0;">
+                    ادخل إلى صفوفك ومهامك وشهاداتك عبر بريد Gmail ورمز PIN
+                </p>
+                <a href="/student-portal" style="text-decoration:none;">
+                    <button type="button" class="btn-neon">الانتقال إلى بوابة الطالب والصفوف ⬅</button>
+                </a>
+            </div>
+
+            <!-- نموذج دخول المعلم -->
+            <div id="box_teacher" class="form-box">
+                <form action="/login" method="POST">
+                    <label>حساب Gmail الخاص بالمعلم:</label>
+                    <input type="email" name="username" placeholder="teacher@gmail.com" required dir="ltr">
+                    
+                    <label>كلمة المرور:</label>
+                    <input type="password" name="password" placeholder="••••••••" required dir="ltr">
+                    
+                    <button type="submit" class="btn-neon">دخول المعلم</button>
+                </form>
+            </div>
         </div>
-    </div>
-
-    <div class="card">
-        <div class="logo"><span class="logo-dot"></span>ROOT <span>ACCESS</span></div>
-        <div class="subtitle" data-i18n="subtitle">اختر نوع الحساب للمتابعة إلى المنصة</div>
-
-        {% if error %}
-        <div class="error-alert">⚠️ {{ error }}</div>
-        {% endif %}
-
-        <div class="role-switcher">
-            <button type="button" id="btn-student" class="role-btn" onclick="selectRole('student')" data-i18n="tab_student">🎓 أنا طالب</button>
-            <button type="button" id="btn-teacher" class="role-btn" onclick="selectRole('teacher')" data-i18n="tab_teacher">👨‍🏫 أنا معلم</button>
-        </div>
-
-        <form id="form-student" class="form-section" action="/student-login" method="post">
-            <input type="email" name="email" data-i18n-ph="ph_email" placeholder="البريد الإلكتروني المسجل" required>
-            <input type="text" name="access_code" data-i18n-ph="ph_pin" placeholder="رمز الدخول (4 أرقام)" maxlength="4" required>
-            <button type="submit" class="submit-student" data-i18n="btn_student">دخول إلى دروسي</button>
-        </form>
-
-        <form id="form-teacher" class="form-section" action="/login" method="post">
-            <input type="text" name="username" data-i18n-ph="ph_user" placeholder="اسم المستخدم" required>
-            <input type="password" name="password" data-i18n-ph="ph_pass" placeholder="كلمة المرور" required>
-            <button type="submit" class="submit-teacher" data-i18n="btn_teacher">دخول لوحة التحكم</button>
-        </form>
     </div>
 
     <script>
-        const i18n = {
-            ar: {
-                back_home: "→ العودة للرئيسية",
-                subtitle: "اختر نوع الحساب للمتابعة إلى المنصة",
-                tab_student: "🎓 أنا طالب",
-                tab_teacher: "👨‍🏫 أنا معلم",
-                ph_email: "البريد الإلكتروني المسجل",
-                ph_pin: "رمز الدخول (4 أرقام)",
-                btn_student: "دخول إلى دروسي",
-                ph_user: "اسم المستخدم",
-                ph_pass: "كلمة المرور",
-                btn_teacher: "دخول لوحة التحكم"
-            },
-            he: {
-                back_home: "→ חזרה לדף הבית",
-                subtitle: "בחרו סוג חשבון כדי להמשיך למערכת",
-                tab_student: "🎓 אני תלמיד/ה",
-                tab_teacher: "👨‍🏫 אני מורה / מרצה",
-                ph_email: "דוא״ל רשום במערכת",
-                ph_pin: "קוד כניסה (4 ספרות)",
-                btn_student: "כניסה לשיעורים שלי",
-                ph_user: "שם משתמש",
-                ph_pass: "סיסמה",
-                btn_teacher: "כניסה ללוח הבקרה"
-            },
-            en: {
-                back_home: "← Back to Home",
-                subtitle: "Select your account type to continue",
-                tab_student: "🎓 Student",
-                tab_teacher: "👨‍🏫 Instructor / Admin",
-                ph_email: "Registered Email Address",
-                ph_pin: "4-Digit Access PIN",
-                btn_student: "Access My Lessons",
-                ph_user: "Username",
-                ph_pass: "Password",
-                btn_teacher: "Sign In to Dashboard"
-            }
-        };
-
-        function setLang(lang) {
-            document.documentElement.lang = lang;
-            document.documentElement.dir = (lang === 'en') ? 'ltr' : 'rtl';
-            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + lang).classList.add('active');
-
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const k = el.getAttribute('data-i18n');
-                if (i18n[lang][k]) el.textContent = i18n[lang][k];
-            });
-            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
-                const k = el.getAttribute('data-i18n-ph');
-                if (i18n[lang][k]) el.placeholder = i18n[lang][k];
-            });
+        function switchRole(role) {
+            document.getElementById("btn_student").classList.toggle("active", role === "student");
+            document.getElementById("btn_teacher").classList.toggle("active", role === "teacher");
+            document.getElementById("box_student").classList.toggle("active", role === "student");
+            document.getElementById("box_teacher").classList.toggle("active", role === "teacher");
         }
-
-        function selectRole(role) {
-            const btnStudent = document.getElementById('btn-student');
-            const btnTeacher = document.getElementById('btn-teacher');
-            const formStudent = document.getElementById('form-student');
-            const formTeacher = document.getElementById('form-teacher');
-
-            if (role === 'student') {
-                btnStudent.classList.add('active-student');
-                btnTeacher.classList.remove('active-teacher');
-                formStudent.classList.add('active');
-                formTeacher.classList.remove('active');
-            } else {
-                btnTeacher.classList.add('active-teacher');
-                btnStudent.classList.remove('active-student');
-                formTeacher.classList.add('active');
-                formStudent.classList.remove('active');
-            }
-        }
-
-        selectRole("{{ active_tab or 'student' }}");
+        // تفعيل تبويب المعلم تلقائياً إذا عاد بخطأ تسجيل دخول
+        if ("{{ active_tab }}" === "teacher") switchRole("teacher");
     </script>
 </body>
 </html>

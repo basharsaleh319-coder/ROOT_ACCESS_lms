@@ -3,215 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>التحقق من الشهادات — ROOT ACCESS</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com" rel="stylesheet">
+    <title>التحقق من الشهادة - ROOT ACCESS LMS</title>
     <style>
-        * { box-sizing: border-box; }
-        body {
-            background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.16), #060b14 65%);
-            background-color: #060b14;
-            color: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            font-family: 'Cairo', 'Heebo', 'Inter', sans-serif;
-        }
-        html[lang="he"] body { font-family: 'Heebo', sans-serif; }
-        html[lang="en"] body { font-family: 'Inter', sans-serif; }
-
-        .top-bar {
-            width: 100%;
-            max-width: 480px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-        }
-        .back-link { color: #94a3b8; text-decoration: none; font-size: 14px; font-weight: 700; transition: color 0.2s; }
-        .back-link:hover { color: #10b981; }
-
-        .lang-switcher { display: flex; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 3px; }
-        .lang-btn { background: transparent; border: none; color: #94a3b8; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; border-radius: 6px; font-family: inherit; }
-        .lang-btn.active { background: #10b981; color: #04100a; }
-
-        .card {
-            background: rgba(15, 23, 42, 0.94);
-            backdrop-filter: blur(12px);
-            border: 1px solid #1e293b;
-            padding: 36px 30px;
-            border-radius: 18px;
-            width: 100%;
-            max-width: 480px;
-            text-align: center;
-            box-shadow: 0 25px 55px rgba(0, 0, 0, 0.65);
-        }
-        .brand { font-size: 15px; font-weight: 900; letter-spacing: 1px; color: #f8fafc; margin-bottom: 8px; }
-        .brand span { color: #10b981; }
-        h2 { color: #f8fafc; margin: 0 0 8px; font-weight: 800; font-size: 24px; }
-        .desc { color: #94a3b8; font-size: 14px; margin: 0 0 24px; }
-
-        input {
-            width: 100%;
-            padding: 13px 16px;
-            margin-bottom: 14px;
-            border-radius: 10px;
-            border: 1px solid #334155;
-            background: #060b14;
-            color: #10b981;
-            font-size: 18px;
-            font-weight: 800;
-            text-align: center;
-            font-family: monospace;
-            letter-spacing: 1.5px;
-        }
-        input:focus { outline: none; border-color: #10b981; }
-
-        .submit-btn {
-            width: 100%;
-            padding: 13px;
-            background: #10b981;
-            color: #04100a;
-            font-weight: 800;
-            font-size: 16px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: inherit;
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.25);
-        }
-        .submit-btn:hover { background: #34d399; }
-        .valid-box {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), #060b14);
-            border: 1px solid #10b981;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 24px;
-            text-align: start;
-        }
-        .valid-header {
-            color: #10b981;
-            font-weight: 800;
-            font-size: 16px;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(16, 185, 129, 0.25);
-        }
-        .valid-row {
-            margin: 8px 0;
-            font-size: 14px;
-            color: #cbd5e1;
-        }
-        .valid-row strong { color: #f8fafc; }
-
-        .invalid-box {
-            background: rgba(239, 68, 68, 0.14);
-            border: 1px solid #ef4444;
-            color: #fca5a5;
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 24px;
-            font-weight: 700;
-            font-size: 14px;
-        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background-color: #050505; color: #f3f4f6; margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
+        header { background: #0d1117; padding: 15px 30px; border-bottom: 1px solid #00ff88; display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-size: 20px; font-weight: bold; color: #00ff88; letter-spacing: 1px; }
+        .main-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .verify-card { background: #0d1117; border: 1px solid #00ff88; border-radius: 12px; padding: 35px; width: 100%; max-width: 520px; box-shadow: 0 0 30px rgba(0, 255, 136, 0.1); text-align: center; }
+        .input-group { display: flex; gap: 10px; margin: 20px 0; }
+        input { flex: 1; padding: 12px; background: #050505; border: 1px solid #374151; border-radius: 8px; color: #00ff88; font-size: 16px; font-family: monospace; text-align: center; text-transform: uppercase; outline: none; }
+        input:focus { border-color: #00ff88; }
+        button { padding: 12px 24px; background: #00ff88; color: #050505; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .result-box { display: none; margin-top: 20px; padding: 20px; border-radius: 10px; text-align: right; }
+        .result-valid { background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; }
+        .result-invalid { background: rgba(239, 68, 68, 0.12); border: 1px solid #ef4444; text-align: center; }
+        .detail-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px dashed #1f2937; }
     </style>
 </head>
 <body>
-    <div class="top-bar">
-        <a href="/" class="back-link" data-i18n="back_home">→ العودة للرئيسية</a>
-        <div class="lang-switcher">
-            <button type="button" class="lang-btn active" id="btn-ar" onclick="setLang('ar')">عربي</button>
-            <button type="button" class="lang-btn" id="btn-he" onclick="setLang('he')">עברית</button>
-            <button type="button" class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+    <header>
+        <div class="brand">ROOT ACCESS // نظام التوثيق</div>
+        <a href="/" style="color:#9ca3af; text-decoration:none; font-size:14px;">الرئيسية</a>
+    </header>
+
+    <div class="main-wrapper">
+        <div class="verify-card">
+            <h1 style="color:#00ff88; margin-top:0; font-size:24px;">🛡️ التحقق من موثوقية الشهادة</h1>
+            <p style="color:#9ca3af; font-size:14px;">أدخل الرقم التسلسلي للشهادة للتحقق من صحتها في سجلات المنصة</p>
+            <div class="input-group">
+                <input type="text" id="serial_input" placeholder="RA-2026-XXXXXX" dir="ltr">
+                <button type="button" onclick="verifyCertificate()">تحقق</button>
+            </div>
+            <div id="result_box" class="result-box"></div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="brand">ROOT <span>ACCESS</span> VERIFICATION</div>
-        <h2 data-i18n="title">التحقق من الشهادات 🔍</h2>
-        <p class="desc" data-i18n="desc">أدخل الرقم التسلسلي للشهادة (مثال: RA-123456) للتحقق من صحتها</p>
-
-        <form action="/verify" method="post">
-            <input type="text" id="certInput" name="cert_id" value="{{ record.cert_id if record else '' }}" placeholder="RA-XXXXXX" required>
-            <button type="submit" class="submit-btn" data-i18n="btn_check">تحقق الآن</button>
-        </form>
-
-        {% if searched %}
-            {% if record %}
-            <div class="valid-box">
-                <div class="valid-header" data-i18n="valid_title">✔ شهادة إتمام إلكترونية صحيحة</div>
-                <div class="valid-row"><strong data-i18n="lbl_name">اسم المتدرب:</strong> {{ record.student_name }}</div>
-                <div class="valid-row"><strong data-i18n="lbl_course">الدورة:</strong> {{ record.course }}</div>
-                <div class="valid-row"><strong data-i18n="lbl_center">الجهة المانحة:</strong> {{ record.center_name or 'ROOT ACCESS' }}</div>
-                <div class="valid-row"><strong data-i18n="lbl_score">النتيجة:</strong> {{ record.score }} / {{ record.total }}</div>
-            </div>
-            {% else %}
-            <div class="invalid-box" data-i18n="invalid_msg">✖ عذرًا، رقم الشهادة المدخل غير مسجل في النظام.</div>
-            {% endif %}
-        {% endif %}
-    </div>
-
     <script>
-        const i18n = {
-            ar: {
-                back_home: "→ العودة للرئيسية",
-                title: "التحقق من الشهادات 🔍",
-                desc: "أدخل الرقم التسلسلي للشهادة (مثال: RA-123456) للتحقق من صحتها",
-                btn_check: "تحقق الآن",
-                valid_title: "✔ شهادة إتمام إلكترونية صحيحة",
-                lbl_name: "اسم المتدرب:",
-                lbl_course: "الدورة:",
-                lbl_center: "الجهة المانحة:",
-                lbl_score: "النتيجة:",
-                invalid_msg: "✖ عذرًا، رقم الشهادة المدخل غير مسجل في النظام."
-            },
-            he: {
-                back_home: "→ חזרה לדף הבית",
-                title: "אימות תעודות דיגיטליות 🔍",
-                desc: "הזינו את המספר הסידורי של התעודה (לדוגמה: RA-123456) לבדיקת מקוריותה",
-                btn_check: "בדיקה עכשיו",
-                valid_title: "✔ תעודת סיום דיגיטלית תקפה ומאומתת",
-                lbl_name: "שם התלמיד/ה:",
-                lbl_course: "קורס:",
-                lbl_center: "המוסד המנפיק:",
-                lbl_score: "ציון:",
-                invalid_msg: "✖ מצטערים, מספר התעודה שהוזן אינו רשום במערכת."
-            },
-            en: {
-                back_home: "← Back to Home",
-                title: "Certificate Verification 🔍",
-                desc: "Enter the certificate serial ID (e.g., RA-123456) to verify its authenticity",
-                btn_check: "Verify Now",
-                valid_title: "✔ Valid Electronic Completion Certificate",
-                lbl_name: "Student Name:",
-                lbl_course: "Course:",
-                lbl_center: "Issuing Institution:",
-                lbl_score: "Score:",
-                invalid_msg: "✖ Sorry, the entered certificate ID is not registered in our system."
-            }
+        window.onload = function() {
+            const serial = new URLSearchParams(window.location.search).get("serial");
+            if (serial) { document.getElementById("serial_input").value = serial; verifyCertificate(); }
         };
 
-        function setLang(lang) {
-            document.documentElement.lang = lang;
-            document.documentElement.dir = (lang === 'en') ? 'ltr' : 'rtl';
-            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + lang).classList.add('active');
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const k = el.getAttribute('data-i18n');
-                if (i18n[lang][k]) el.textContent = i18n[lang][k];
-            });
-        }
+        async function verifyCertificate() {
+            const serial = document.getElementById("serial_input").value.trim().toUpperCase();
+            const box = document.getElementById("result_box");
+            if (!serial) return;
+            box.style.display = "block";
+            box.innerHTML = "<p style='text-align:center; color:#9ca3af;'>جاري الفحص...</p>";
 
-        // تعبئة الرقم تلقائيًا إذا تم فتح الصفحة من رابط الشهادة
-        const urlParams = new URLSearchParams(window.location.search);
-        const certParam = urlParams.get('cert_id');
-        if (certParam && !document.getElementById('certInput').value) {
-            document.getElementById('certInput').value = certParam;
+            const res = await fetch(`/api/verify-certificate/${encodeURIComponent(serial)}`);
+            const data = await res.json();
+
+            if (res.ok && data.valid) {
+                box.className = "result-box result-valid";
+                box.innerHTML = `
+                    <div style="color:#00ff88; font-size:18px; font-weight:bold; margin-bottom:12px;">✔ شهادة معتمدة وصحيحة</div>
+                    <div class="detail-row"><span style="color:#9ca3af;">الرقم التسلسلي:</span><strong dir="ltr" style="color:#00ff88; font-family:monospace;">${data.cert_serial}</strong></div>
+                    <div class="detail-row"><span style="color:#9ca3af;">الطالب:</span><strong>${data.student_id}</strong></div>
+                    <div class="detail-row"><span style="color:#9ca3af;">الصف / المادة:</span><strong>${data.course_name}</strong></div>
+                    <div class="detail-row"><span style="color:#9ca3af;">نوع الشهادة:</span><strong>${data.cert_type}</strong></div>
+                    <div class="detail-row" style="border:none;"><span style="color:#9ca3af;">تاريخ الإصدار:</span><strong dir="ltr">${data.issue_date}</strong></div>
+                `;
+            } else {
+                box.className = "result-box result-invalid";
+                box.innerHTML = `<div style="color:#ef4444; font-weight:bold; font-size:17px;">✖ شهادة غير صالحة أو غير مسجلة</div>`;
+            }
         }
     </script>
 </body>

@@ -3,71 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة الطالب - ROOT ACCESS</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com" rel="stylesheet">
+    <title>بوابة الطالب والصفوف - ROOT ACCESS LMS</title>
     <style>
-        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-        body { background: #060b14; color: #f8fafc; margin: 0; padding: 0; }
-        .navbar { background: #0f172a; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; }
-        .brand { font-size: 20px; font-weight: 800; color: #10b981; }
-        .exit-btn { color: #94a3b8; text-decoration: none; font-size: 14px; font-weight: 600; }
-        .exit-btn:hover { color: white; }
+        :root {
+            --bg-black: #050505;
+            --card-dark: #0d1117;
+            --border-dark: #1f2937;
+            --neon-green: #00ff88;
+            --neon-dim: rgba(0, 255, 136, 0.12);
+            --amber: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background-color: var(--bg-black); color: var(--text-main); margin: 0; padding: 0; }
         
-        .container { max-width: 850px; margin: 30px auto; padding: 0 20px; }
-        .welcome-box { background: linear-gradient(135deg, #0f172a, #061311); border: 1px solid #1e293b; padding: 25px; border-radius: 14px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        .course-badge { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); padding: 4px 14px; border-radius: 20px; font-size: 14px; font-weight: 700; }
+        header {
+            background-color: var(--card-dark); padding: 15px 30px; border-bottom: 1px solid var(--neon-green);
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+        }
+        .brand { font-size: 20px; font-weight: bold; color: var(--neon-green); letter-spacing: 1px; text-shadow: 0 0 8px rgba(0, 255, 136, 0.4); }
+        .container { max-width: 1100px; margin: 35px auto; padding: 0 20px; }
         
-        .exam-nav-btn { background: #10b981; color: #04100a; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 800; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25); transition: transform 0.2s, background 0.2s; }
-        .exam-nav-btn:hover { transform: translateY(-2px); background: #34d399; }
+        .login-box {
+            background: var(--card-dark); border: 1px solid var(--neon-green); padding: 35px;
+            border-radius: 12px; text-align: center; max-width: 440px; margin: 45px auto;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.08);
+        }
+        input {
+            width: 100%; padding: 12px; margin: 10px 0; background: var(--bg-black);
+            border: 1px solid #374151; border-radius: 8px; color: white; font-size: 15px; text-align: center; outline: none;
+        }
+        input:focus { border-color: var(--neon-green); box-shadow: 0 0 8px rgba(0, 255, 136, 0.25); }
+        
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.2s; }
+        .btn-neon { background: var(--neon-green); color: #050505; width: 100%; margin-top: 10px; }
+        .btn-neon:hover { background: #00cc6a; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4); }
+        .btn-back { background: #1f2937; color: var(--neon-green); border: 1px solid var(--neon-green); margin-bottom: 20px; }
 
-        h3 { color: #10b981; margin-top: 25px; font-size: 18px; }
-        .lesson-card { background: #0f172a; border: 1px solid #1e293b; padding: 18px 20px; border-radius: 12px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; }
-        .lesson-info { flex: 1; min-width: 220px; }
-        .lesson-desc { color: #94a3b8; font-size: 14px; margin: 6px 0 0; line-height: 1.6; }
-        .watch-btn { background: #10b981; color: #04100a; padding: 8px 18px; text-decoration: none; border-radius: 8px; font-weight: 800; font-size: 14px; white-space: nowrap; }
-        .watch-btn:hover { background: #34d399; }
+        .classes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 20px; }
+        .class-square {
+            background: linear-gradient(145deg, #0d1117, #050505); border: 1px solid var(--neon-green);
+            border-radius: 12px; padding: 25px; text-align: center; cursor: pointer; transition: 0.25s;
+        }
+        .class-square:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0, 255, 136, 0.2); background: var(--neon-dim); }
+        .class-square h3 { margin: 0 0 8px 0; color: var(--neon-green); font-size: 22px; }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn {
+            background: var(--card-dark); color: var(--text-muted); border: 1px solid var(--border-dark);
+            padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold;
+        }
+        .tab-btn.active { background: var(--neon-green); color: #050505; border-color: var(--neon-green); }
+        .tab-panel { display: none; background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 10px; padding: 20px; }
+        .tab-panel.active { display: block; }
+        
+        .mat-item { background: var(--bg-black); border-right: 4px solid var(--neon-green); padding: 15px; border-radius: 8px; margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--border-dark); font-size: 14px; }
+        th { color: var(--neon-green); background: var(--bg-black); }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .badge-present { background: var(--neon-dim); color: var(--neon-green); border: 1px solid var(--neon-green); }
+        .badge-late { background: rgba(245, 158, 11, 0.15); color: var(--amber); border: 1px solid var(--amber); }
+        .badge-absent { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <div class="brand">ROOT ACCESS <span style="font-size: 13px; color: #94a3b8; font-weight: 400;">| بوابة المتدرب</span></div>
-        <a href="/" class="exit-btn">تسجيل الخروج ←</a>
-    </div>
+    <header>
+        <div class="brand">ROOT ACCESS // بوابة الطالب</div>
+        <a href="/" style="color:var(--text-muted); text-decoration:none; font-size:14px;">الرئيسية</a>
+    </header>
 
     <div class="container">
-        <div class="welcome-box">
-            <div>
-                <h2 style="margin: 0 0 8px;">أهلاً بك، {{ student.name }} 👋</h2>
-                <div>المادة الحالية: <span class="course-badge">{{ student.course }}</span></div>
-            </div>
-            
-            {% if has_quiz %}
-            <form action="/student-exam" method="post" style="margin: 0;">
-                <input type="hidden" name="email" value="{{ student.email }}">
-                <input type="hidden" name="access_code" value="{{ student.access_code }}">
-                <button type="submit" class="exam-nav-btn">📝 الانتقال لصفحة الامتحان</button>
-            </form>
-            {% endif %}
+        <!-- شاشة تسجيل دخول الطالب -->
+        <div id="login_section" class="login-box">
+            <h2 style="color:var(--neon-green); margin-top:0;">🛡️ دخول الطالب الآمن</h2>
+            <p style="color:var(--text-muted); font-size:14px;">أدخل بريدك الإلكتروني (Gmail) والرمز السري (PIN)</p>
+            <input type="email" id="student_code_input" placeholder="student@gmail.com">
+            <input type="password" id="student_pin_input" placeholder="الرمز السري (PIN المكون من 4 أرقام)" maxlength="4">
+            <button class="btn btn-neon" onclick="loginStudent()">دخول إلى صفوفي</button>
+            <p id="login_err" style="color:var(--danger); margin-top:12px; font-weight:bold;"></p>
         </div>
 
-        <h3>📚 قائمة الدروس المسجلة لك:</h3>
-        {% for lesson in lessons %}
-        <div class="lesson-card">
-            <div class="lesson-info">
-                <div><strong style="color: #10b981;">{{ loop.index }}.</strong> <strong>{{ lesson.title }}</strong></div>
-                {% if lesson.description %}
-                <p class="lesson-desc">{{ lesson.description }}</p>
-                {% endif %}
+        <!-- شاشة مربعات الصفوف -->
+        <div id="classes_section" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 id="student_welcome" style="color:var(--neon-green);"></h2>
+                <button class="btn" style="background:#1f2937; color:white;" onclick="location.reload()">خروج</button>
             </div>
-            {% if lesson.video_url %}
-            <a href="{{ lesson.video_url }}" target="_blank" class="watch-btn">مشاهدة الدرس ▶</a>
-            {% endif %}
+            <p style="color:var(--text-muted);">اضغط على مربع الصف للدخول إلى الوظائف، الرزنامة، والشهادات الخاصة به:</p>
+            <div id="student_classes_grid" class="classes-grid"></div>
         </div>
-        {% else %}
-        <p style="color: #94a3b8; background: #0f172a; padding: 15px; border-radius: 8px;">لم يقم المعلم بإضافة دروس لهذه المادة بعد.</p>
-        {% endfor %}
+
+        <!-- شاشة تفاصيل الصف المختار -->
+        <div id="class_detail_section" style="display:none;">
+            <button class="btn btn-back" onclick="backToClasses()">⬅ العودة إلى قائمة صفوفي</button>
+            <h2 id="detail_class_title" style="color:var(--neon-green); margin-top:0;"></h2>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="openTab('panel_tasks', this)">📝 الوظائف والمهام والروابط</button>
+                <button class="tab-btn" onclick="openTab('panel_calendar', this)">📅 الرزنامة وملاحظات المعلم</button>
+                <button class="tab-btn" onclick="openTab('panel_certs', this)">🎓 شهاداتي في هذا الصف</button>
+            </div>
+
+            <div id="panel_tasks" class="tab-panel active"></div>
+            <div id="panel_calendar" class="tab-panel">
+                <table>
+                    <thead><tr><th>التاريخ</th><th>الحالة</th><th>التأخير</th><th>ملاحظات المعلم</th><th>نوع اليوم</th></tr></thead>
+                    <tbody id="cal_tbody"></tbody>
+                </table>
+            </div>
+            <div id="panel_certs" class="tab-panel"></div>
+        </div>
     </div>
+    <script>
+        let currentStudentEmail = "";
+
+        async function loginStudent() {
+            const email = document.getElementById("student_code_input").value.trim().toLowerCase();
+            const pin = document.getElementById("student_pin_input").value.trim();
+            if (!email || !pin) {
+                document.getElementById("login_err").innerText = "يرجى إدخال البريد الإلكتروني والرمز السري (PIN)!";
+                return;
+            }
+
+            const res = await fetch(`/api/student/${encodeURIComponent(email)}/classes?pin=${encodeURIComponent(pin)}`);
+            const classes = await res.json();
+
+            if (classes.length === 0) {
+                document.getElementById("login_err").innerText = "البريد الإلكتروني أو الرمز السري (PIN) غير صحيح!";
+                return;
+            }
+
+            currentStudentEmail = email;
+            document.getElementById("login_section").style.display = "none";
+            document.getElementById("classes_section").style.display = "block";
+            document.getElementById("student_welcome").innerText = `أهلاً بك، ${classes[0].student_name}`;
+
+            const grid = document.getElementById("student_classes_grid");
+            grid.innerHTML = "";
+            classes.forEach(c => {
+                grid.innerHTML += `
+                    <div class="class-square" onclick="openClass(${c.id}, '${c.class_name}', '${c.subject}')">
+                        <h3>${c.class_name}</h3>
+                        <p style="color:#9ca3af; margin:0;">${c.subject || "مادة دراسية"}</p>
+                        <div style="margin-top:15px; font-size:13px; color:var(--neon-green); font-weight:bold;">اضغط للدخول ⬅</div>
+                    </div>
+                `;
+            });
+        }
+
+        function backToClasses() {
+            document.getElementById("class_detail_section").style.display = "none";
+            document.getElementById("classes_section").style.display = "block";
+        }
+
+        function openTab(panelId, btn) {
+            document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            document.getElementById(panelId).classList.add("active");
+            btn.classList.add("active");
+        }
+
+        async function openClass(classId, className, subject) {
+            document.getElementById("classes_section").style.display = "none";
+            document.getElementById("class_detail_section").style.display = "block";
+            document.getElementById("detail_class_title").innerText = `${className} - ${subject || ""}`;
+
+            const res = await fetch(`/api/student/${encodeURIComponent(currentStudentEmail)}/class/${classId}/details`);
+            const data = await res.json();
+
+            const tasksDiv = document.getElementById("panel_tasks");
+            tasksDiv.innerHTML = data.materials.length ? "" : "<p style='color:#9ca3af;'>لا توجد مهام أو روابط منشورة حالياً.</p>";
+            data.materials.forEach(m => {
+                let typeLabel = m.item_type === "link" ? "🔗 رابط" : m.item_type === "question" ? "❓ أسئلة" : "📝 مهمة / وظيفة";
+                let contentHtml = m.item_type === "link" ? `<a href="${m.content}" target="_blank" style="color:#00ff88;">${m.content}</a>` : `<p style="margin:5px 0; white-space:pre-line; color:#e5e7eb;">${m.content}</p>`;
+                tasksDiv.innerHTML += `<div class="mat-item"><small style="color:#00ff88;">${typeLabel} | ${m.created_at}</small><h4 style="margin:5px 0;">${m.title}</h4>${contentHtml}</div>`;
+            });
+
+            const calBody = document.getElementById("cal_tbody");
+            calBody.innerHTML = "";
+            data.attendance.forEach(a => {
+                let badge = a.status === "present" ? '<span class="badge badge-present">حاضر</span>' :
+                            a.status === "late" ? '<span class="badge badge-late">متأخر</span>' : '<span class="badge badge-absent">غائب</span>';
+                let late = a.status === "late" ? `${a.late_minutes} دقيقة` : "-";
+                let exam = a.is_exam === 1 ? '<span style="color:#ef4444; font-weight:bold;">يوم امتحان</span>' : 'حصة عادية';
+                calBody.innerHTML += `<tr><td>${a.record_date}</td><td>${badge}</td><td>${late}</td><td>${a.notes || "-"}</td><td>${exam}</td></tr>`;
+            });
+
+            const certsDiv = document.getElementById("panel_certs");
+            certsDiv.innerHTML = data.certificates.length ? "" : "<p style='color:#9ca3af;'>لا توجد شهادات صادرة لك في هذا الصف بعد.</p>";
+            data.certificates.forEach(c => {
+                certsDiv.innerHTML += `
+                    <div style="border:1px solid #00ff88; background:#050505; padding:15px; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h4 style="margin:0; color:#00ff88;">${c.cert_type}</h4>
+                            <small style="color:#9ca3af;">الرقم التسلسلي: ${c.cert_serial} | التاريخ: ${c.issue_date}</small>
+                        </div>
+                        <button class="btn" style="background:#00ff88; color:#050505;" onclick="window.open('/verify?serial=${c.cert_serial}', '_blank')">معاينة وتوثيق</button>
+                    </div>
+                `;
+            });
+        }
+    </script>
 </body>
 </html>

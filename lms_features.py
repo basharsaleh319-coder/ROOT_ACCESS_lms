@@ -12,9 +12,10 @@ def init_all_tables():
     conn = get_db()
     cursor = conn.cursor()
     
+    # استخدام SERIAL PRIMARY KEY ليتوافق مع Neon PostgreSQL
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS teacher_activations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             teacher_name TEXT DEFAULT '',
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT,
@@ -24,7 +25,7 @@ def init_all_tables():
     """)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS classes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             teacher_id INTEGER NOT NULL,
             class_name TEXT NOT NULL,
             subject TEXT DEFAULT ''
@@ -32,7 +33,7 @@ def init_all_tables():
     """)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS class_enrollments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             class_id INTEGER NOT NULL,
             student_code TEXT NOT NULL,
             student_name TEXT NOT NULL,
@@ -42,7 +43,7 @@ def init_all_tables():
     """)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS class_materials (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             class_id INTEGER NOT NULL,
             item_type TEXT NOT NULL,
             title TEXT NOT NULL,
@@ -52,7 +53,7 @@ def init_all_tables():
     """)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS class_attendance (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             class_id INTEGER NOT NULL,
             record_date TEXT NOT NULL,
             student_code TEXT NOT NULL,
@@ -64,7 +65,7 @@ def init_all_tables():
     """)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS class_certificates (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             cert_serial TEXT UNIQUE NOT NULL,
             class_id INTEGER NOT NULL,
             student_code TEXT NOT NULL,
@@ -78,7 +79,7 @@ def init_all_tables():
         cursor.execute("ALTER TABLE teacher_activations ADD COLUMN teacher_name TEXT DEFAULT ''")
         conn.commit()
     except Exception:
-        pass
+        conn.rollback()
     conn.close()
 
 init_all_tables()
@@ -196,6 +197,7 @@ def update_teacher_info(teacher_id: int, teacher_name: str = Form(...), email: s
         conn.commit()
         return {"status": "success", "message": "تم تحديث بيانات المعلم بنجاح"}
     except Exception:
+        conn.rollback()
         raise HTTPException(status_code=400, detail="البريد الإلكتروني مستخدم لمعلم آخر!")
     finally:
         conn.close()
@@ -213,28 +215,36 @@ def delete_teacher(teacher_id: int):
 @router.post("/api/teacher/activate-account")
 def activate_teacher_account(token: str = Form(...), new_password: str = Form(...)):
     conn = get_db()
-    teacher = conn.execute("SELECT * FROM teacher_activations WHERE activation_token = ?", (token.strip(),)).fetchone()
-    if not teacher:
-        conn.close()
-        raise HTTPException(status_code=400, detail="الرابط غير صالح أو تم استخدامه مسبقاً")
-    email = teacher["email"]
-    name = teacher["teacher_name"] or email.split("@")
-    hashed_pw = hash_password(new_password.strip())
-    conn.execute("UPDATE teacher_activations SET password_hash = ?, is_active = 1, activation_token = NULL WHERE id = ?", (hashed_pw, teacher["id"]))
-    existing_inst = conn.execute("SELECT * FROM instructors WHERE username = ?", (email,)).fetchone()
-    if existing_inst:
-        conn.execute("UPDATE instructors SET name = ?, password_hash = ?, status = 'active' WHERE username = ?", (name, hashed_pw, email))
-    else:
-        cols = [row for row in conn.execute("PRAGMA table_info(instructors)").fetchall()]
-        if "plan" in cols and "name" in cols:
-            conn.execute("INSERT INTO instructors (name, username, password_hash, plan, status) VALUES (?, ?, ?, ?, ?)", (name, email, hashed_pw, "Standard", "active"))
-        elif "name" in cols:
-            conn.execute("INSERT INTO instructors (name, username, password_hash, status) VALUES (?, ?, ?, ?)", (name, email, hashed_pw, "active"))
+    try:
+        teacher = conn.execute("SELECT * FROM teacher_activations WHERE activation_token = ?", (token.strip(),)).fetchone()
+        if not teacher:
+            raise HTTPException(status_code=400, detail="الرابط غير صالح أو تم استخدامه مسبقاً")
+            
+        email = teacher["email"]
+        raw_name = teacher["teacher_name"]
+        name = raw_name if (raw_name and isinstance(raw_name, str)) else email.split("@")
+        hashed_pw = hash_password(new_password.strip())
+        
+        conn.execute("UPDATE teacher_activations SET password_hash = ?, is_active = 1, activation_token = NULL WHERE id = ?", (hashed_pw, teacher["id"]))
+        
+        existing_inst = conn.execute("SELECT * FROM instructors WHERE username = ?", (email,)).fetchone()
+        if existing_inst:
+            conn.execute("UPDATE instructors SET name = ?, password_hash = ?, status = 'active' WHERE username = ?", (name, hashed_pw, email))
         else:
-            conn.execute("INSERT INTO instructors (username, password_hash, status) VALUES (?, ?, ?)", (email, hashed_pw, "active"))
-    conn.commit()
-    conn.close()
-    return {"status": "success", "message": "تم حفظ كلمة المرور وتأمين الحساب بنجاح"}
+            try:
+                conn.execute("INSERT INTO instructors (name, username, password_hash, plan, status) VALUES (?, ?, ?, ?, ?)", (name, email, hashed_pw, "Standard", "active"))
+            except Exception:
+                conn.rollback()
+                conn.execute("INSERT INTO instructors (name, username, password_hash, status) VALUES (?, ?, ?, ?)", (name, email, hashed_pw, "active"))
+        conn.commit()
+        return {"status": "success", "message": "تم حفظ كلمة المرور وتأمين الحساب بنجاح"}
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"خطأ في قاعدة البيانات: {str(e)}")
+    finally:
+        conn.close()
 
 @router.post("/api/teacher/classes/create")
 def create_class(request: Request, class_name: str = Form(...), subject: str = Form("")):
@@ -278,6 +288,7 @@ def add_student_to_class(class_id: int, student_code: str = Form(...), student_n
         conn.commit()
         return {"status": "success", "message": f"تمت إضافة {student_name} | رمز الدخول السري (PIN): {pin}", "pin": pin}
     except Exception:
+        conn.rollback()
         raise HTTPException(status_code=400, detail="هذا البريد مسجل مسبقاً في هذا الصف!")
     finally:
         conn.close()
@@ -291,6 +302,7 @@ def update_student_in_class(enrollment_id: int, student_name: str = Form(...), s
         conn.commit()
         return {"status": "success", "message": "تم تعديل بيانات الطالب بنجاح"}
     except Exception:
+        conn.rollback()
         raise HTTPException(status_code=400, detail="البريد مسجل مسبقاً في هذا الصف!")
     finally:
         conn.close()

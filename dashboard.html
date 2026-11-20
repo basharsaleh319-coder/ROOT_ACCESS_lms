@@ -310,11 +310,37 @@
             quizzes.forEach(q => { div.innerHTML += `<div style="background:#050505; border:1px solid #1f2937; padding:12px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><strong style="color:#00ff88;">${q.title}</strong><div><button class="btn btn-sm btn-edit" onclick="openQuizBuilder(${q.id}, '${q.title}')">➕ أسئلة</button><button class="btn btn-sm" style="background:#00ff88; color:#050505;" onclick="viewQuizResults(${q.id})">📊 الدرجات</button></div></div>`; });
         }
 
-        function openQuizBuilder(id, title) { activeQuizId = id; document.getElementById("quiz_builder_box").style.display = "block"; document.getElementById("builder_quiz_title").innerText = "إضافة أسئلة إلى: " + title; loadAddedQuestions(); }
+        function openQuizBuilder(id, title) { activeQuizId = Number(id); document.getElementById("quiz_builder_box").style.display = "block"; document.getElementById("builder_quiz_title").innerText = "إضافة أسئلة إلى: " + title; loadAddedQuestions(); }
 
-        document.getElementById("createQuizForm").addEventListener("submit", async e => { e.preventDefault(); const titleVal = document.getElementById("quiz_title").value, fd = new FormData(); fd.append("title", titleVal); const res = await fetch(`/api/teacher/classes/${currentClassId}/quizzes/create`, { method: "POST", body: fd }), data = await res.json(); document.getElementById("quiz_title").value = ""; loadClassQuizzes(); openQuizBuilder(data.quiz_id, titleVal); });
+        document.getElementById("createQuizForm").addEventListener("submit", async e => {
+            e.preventDefault();
+            const titleVal = document.getElementById("quiz_title").value, fd = new FormData();
+            fd.append("title", titleVal);
+            const res = await fetch(`/api/teacher/classes/${currentClassId}/quizzes/create`, { method: "POST", body: fd });
+            const data = await res.json();
+            document.getElementById("quiz_title").value = "";
+            await loadClassQuizzes();
+            openQuizBuilder(data.quiz_id, titleVal);
+        });
 
-        document.getElementById("addQuestionForm").addEventListener("submit", async e => { e.preventDefault(); const fd = new FormData(); fd.append("question_text", document.getElementById("q_text").value); fd.append("opt_a", document.getElementById("opt_a").value); fd.append("opt_b", document.getElementById("opt_b").value); fd.append("opt_c", document.getElementById("opt_c").value); fd.append("opt_d", document.getElementById("opt_d").value); fd.append("correct_opt", document.getElementById("correct_opt").value); const res = await fetch(`/api/teacher/quizzes/${activeQuizId}/add-question`, { method: "POST", body: fd }), data = await res.json(); showToast("q_msg", res.ok, data.message || data.detail); if (res.ok) { document.getElementById("addQuestionForm").reset(); document.getElementById("q_text").focus(); loadAddedQuestions(); } });
+        document.getElementById("addQuestionForm").addEventListener("submit", async e => {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append("question_text", document.getElementById("q_text").value);
+            fd.append("opt_a", document.getElementById("opt_a").value);
+            fd.append("opt_b", document.getElementById("opt_b").value);
+            fd.append("opt_c", document.getElementById("opt_c").value);
+            fd.append("opt_d", document.getElementById("opt_d").value);
+            fd.append("correct_opt", document.getElementById("correct_opt").value);
+            const res = await fetch(`/api/teacher/quizzes/${activeQuizId}/add-question`, { method: "POST", body: fd });
+            const data = await res.json();
+            showToast("q_msg", res.ok, data.message || data.detail);
+            if (res.ok) {
+                document.getElementById("addQuestionForm").reset();
+                document.getElementById("q_text").focus();
+                loadAddedQuestions();
+            }
+        });
 
         async function viewQuizResults(quizId) { const res = await fetch(`/api/teacher/quizzes/${quizId}/results`), rows = await res.json(), table = document.getElementById("quizResultsTable"), tbody = document.getElementById("quiz_results_tbody"); table.style.display = "table"; tbody.innerHTML = rows.length ? "" : "<tr><td colspan='4' style='text-align:center;'>لا توجد إجابات بعد.</td></tr>"; rows.forEach(r => { tbody.innerHTML += `<tr><td><strong>${r.student_name}</strong></td><td>${r.student_code}</td><td style="color:#00ff88; font-weight:bold;">${r.score} / ${r.total}</td><td dir="ltr">${r.submitted_at}</td></tr>`; }); }
 
@@ -324,7 +350,15 @@
         document.getElementById("attForm").addEventListener("submit", async e => { e.preventDefault(); const fd = new FormData(); fd.append("record_date", document.getElementById("att_date").value); fd.append("student_code", document.getElementById("att_student_select").value); fd.append("status", document.getElementById("att_status").value); fd.append("late_minutes", document.getElementById("att_late_min").value); fd.append("notes", document.getElementById("att_notes").value); fd.append("is_exam", document.getElementById("att_is_exam").checked); const res = await fetch(`/api/teacher/classes/${currentClassId}/attendance`, { method: "POST", body: fd }), data = await res.json(); showToast("att_msg", res.ok, data.message); if (res.ok) document.getElementById("att_notes").value = ""; });
         document.getElementById("certForm").addEventListener("submit", async e => { e.preventDefault(); const sel = document.getElementById("cert_student_select"), fd = new FormData(); fd.append("student_code", sel.value); fd.append("student_name", sel.options[sel.selectedIndex].getAttribute("data-name")); fd.append("cert_type", document.getElementById("cert_type").value); const res = await fetch(`/api/teacher/classes/${currentClassId}/certificate`, { method: "POST", body: fd }), data = await res.json(); showToast("cert_msg", res.ok, `${data.message} - الرقم: ${data.cert_serial}`); });
 
-        function showToast(id, ok, text) { const el = document.getElementById(id); el.style.display = "block"; el.style.background = ok ? "rgba(0, 255, 136, 0.12)" : "rgba(239, 68, 68, 0.15)"; el.style.border = ok ? "1px solid #00ff88" : "1px solid #ef4444"; el.style.color = ok ? "#00ff88" : "#f87171"; el.innerText = text; }
+        function showToast(id, ok, text) {
+            const el = document.getElementById(id);
+            el.style.display = "block";
+            el.style.background = ok ? "rgba(0, 255, 136, 0.12)" : "rgba(239, 68, 68, 0.15)";
+            el.style.border = ok ? "1px solid #00ff88" : "1px solid #ef4444";
+            el.style.color = ok ? "#00ff88" : "#f87171";
+            el.innerText = typeof text === "object" ? JSON.stringify(text) : text;
+        }
+
         loadClasses();
     </script>
 </body>

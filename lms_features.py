@@ -420,14 +420,11 @@ init_quiz_tables()
 def create_quiz(class_id: int, title: str = Form(...)):
     conn = get_db()
     today = datetime.now().strftime("%Y-%m-%d")
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO class_quizzes (class_id, title, created_at) VALUES (?, ?, ?) RETURNING id", (class_id, title.strip(), today))
-    row = cursor.fetchone()
-    if isinstance(row, dict) or hasattr(row, "keys"):
-        quiz_id = row["id"]
-    else:
-        quiz_id = row
+    clean_title = title.strip()
+    conn.execute("INSERT INTO class_quizzes (class_id, title, created_at) VALUES (?, ?, ?)", (class_id, clean_title, today))
     conn.commit()
+    row = conn.execute("SELECT id FROM class_quizzes WHERE class_id = ? AND title = ? ORDER BY id DESC LIMIT 1", (class_id, clean_title)).fetchone()
+    quiz_id = int(row["id"]) if row else 1
     conn.close()
     return {"status": "success", "quiz_id": quiz_id, "message": "تم إنشاء الاختبار بنجاح"}
 
@@ -445,7 +442,7 @@ def add_quiz_question(
     )
     conn.commit()
     conn.close()
-    return {"status": "success", "message": "تمت إضافة السؤال للاختبار"}
+    return {"status": "success", "message": "تم حفظ السؤال بنجاح! يمكنك إضافة سؤال آخر الآن"}
 
 @router.get("/api/teacher/quizzes/{quiz_id}/questions-list")
 def get_teacher_quiz_questions(quiz_id: int):

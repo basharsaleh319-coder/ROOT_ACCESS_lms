@@ -212,7 +212,7 @@ def update_teacher_info(teacher_id: int, teacher_name: str = Form(...), email: s
     new_name = teacher_name.strip()
     try:
         conn.execute("UPDATE teacher_activations SET teacher_name = ?, email = ? WHERE id = ?", (new_name, new_email, teacher_id))
-        conn.execute("UPDATE instructors SET username = ? WHERE username = ?", (new_email, old["email"]))
+        conn.execute("UPDATE instructors SET center_name = ?, username = ? WHERE username = ?", (new_name, new_email, old["email"]))
         conn.commit()
         return {"status": "success", "message": "تم تحديث بيانات المعلم بنجاح"}
     except Exception:
@@ -240,13 +240,17 @@ def activate_teacher_account(token: str = Form(...), new_password: str = Form(..
         if not teacher:
             raise HTTPException(status_code=400, detail="الرابط غير صالح أو تم استخدامه مسبقاً")
         email = teacher["email"]
+        raw_name = teacher["teacher_name"]
+        center = raw_name if (raw_name and isinstance(raw_name, str)) else "ROOT ACCESS"
         hashed_pw = hash_password(new_password.strip())
+        
         conn.execute("UPDATE teacher_activations SET password_hash = ?, is_active = 1, activation_token = NULL WHERE id = ?", (hashed_pw, teacher["id"]))
+        
         existing_inst = conn.execute("SELECT * FROM instructors WHERE username = ?", (email,)).fetchone()
         if existing_inst:
-            conn.execute("UPDATE instructors SET password_hash = ?, status = 'active' WHERE username = ?", (hashed_pw, email))
+            conn.execute("UPDATE instructors SET center_name = ?, password_hash = ?, status = 'active' WHERE username = ?", (center, hashed_pw, email))
         else:
-            conn.execute("INSERT INTO instructors (username, password_hash, status) VALUES (?, ?, ?)", (email, hashed_pw, "active"))
+            conn.execute("INSERT INTO instructors (center_name, username, password_hash, plan, status) VALUES (?, ?, ?, ?, ?)", (center, email, hashed_pw, "Standard", "active"))
         conn.commit()
         return {"status": "success", "message": "تم حفظ كلمة المرور وتأمين الحساب بنجاح"}
     except HTTPException as he:
@@ -408,11 +412,6 @@ def verify_classroom_cert(cert_serial: str):
         raise HTTPException(status_code=404, detail="الشهادة غير صالحة أو غير مسجلة")
     course_display = f"{cert['class_name']} - {cert['subject']}" if cert['subject'] else cert['class_name']
     return {"valid": True, "cert_serial": cert["cert_serial"], "student_id": f"{cert['student_name']} ({cert['student_code']})", "course_name": course_display, "cert_type": cert["cert_type"], "issue_date": cert["issue_date"]}
-
-# ==========================================
-# نظام الاختبارات التفاعلية
-# ==========================================
-
 @router.post("/api/teacher/classes/{class_id}/quizzes/create")
 def create_quiz(class_id: int, title: str = Form(...)):
     conn = get_db()

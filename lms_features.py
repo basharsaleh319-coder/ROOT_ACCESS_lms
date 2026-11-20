@@ -90,18 +90,11 @@ def get_teacher_id(request: Request) -> int:
 def send_gmail_security_link(teacher_email: str, token: str, base_url: str, purpose: str = "تفعيل حسابك"):
     BREVO_API_KEY = os.getenv("BREVO_API_KEY", "").strip()
     sender_email = "rootaccess.cayber@gmail.com"
-    
     clean_base = base_url.replace("http://", "https://").rstrip("/")
     setup_link = f"{clean_base}/setup-password?token={token}"
-    
     host = "".join(["a", "p", "i", ".", "b", "r", "e", "v", "o", ".", "c", "o", "m"])
     url = f"https://{host}/v3/smtp/email"
-    
-    headers = {
-        "accept": "application/json",
-        "api-key": BREVO_API_KEY,
-        "content-type": "application/json"
-    }
+    headers = {"accept": "application/json", "api-key": BREVO_API_KEY, "content-type": "application/json"}
     payload = {
         "sender": {"name": "ROOT ACCESS", "email": sender_email},
         "to": [{"email": teacher_email}],
@@ -110,15 +103,10 @@ def send_gmail_security_link(teacher_email: str, token: str, base_url: str, purp
         <div dir="rtl" style="font-family:Arial, sans-serif; background:#050505; color:#f3f4f6; padding:30px; border:1px solid #00ff88; border-radius:10px;">
             <h2 style="color:#00ff88; margin-top:0;">🛡️ ROOT ACCESS</h2>
             <p>تم طلب (<strong>{purpose}</strong>) لحسابك. اضغط على الزر التالي لتعيين كلمة المرور:</p>
-            <p style="margin:20px 0;">
-                <a href="{setup_link}" target="_blank" style="background:#00ff88; color:#050505; padding:12px 24px; text-decoration:none; font-weight:bold; border-radius:6px; display:inline-block;">
-                    تعيين كلمة المرور الآن
-                </a>
-            </p>
-            <p style="font-size:13px; color:#9ca3af;">إذا لم يعمل الزر، انسخ الرابط التالي وافتحه في المتصفح:</p>
+            <p style="margin:20px 0;"><a href="{setup_link}" target="_blank" style="background:#00ff88; color:#050505; padding:12px 24px; text-decoration:none; font-weight:bold; border-radius:6px; display:inline-block;">تعيين كلمة المرور الآن</a></p>
+            <p style="font-size:13px; color:#9ca3af;">إذا لم يعمل الزر، انسخ الرابط التالي:</p>
             <p dir="ltr" style="font-size:12px; color:#00ff88; word-break:break-all;">{setup_link}</p>
-        </div>
-        """
+        </div>"""
     }
     response = requests.post(url, json=payload, headers=headers, timeout=15)
     if response.status_code not in (200, 201, 202):
@@ -137,7 +125,7 @@ def get_all_teachers():
 @router.post("/api/master/invite-teacher")
 def invite_teacher(request: Request, teacher_name: str = Form(""), email: str = Form(...)):
     email = email.strip().lower()
-    name = teacher_name.strip() or email.split("@")[0]
+    name = teacher_name.strip() or email.split("@")
     if not email or "@" not in email:
         raise HTTPException(status_code=400, detail="يرجى إدخال بريد Gmail صحيح")
     conn = get_db()
@@ -156,7 +144,7 @@ def invite_teacher(request: Request, teacher_name: str = Form(""), email: str = 
         except Exception as mail_err:
             clean_base = base_url.replace("http://", "https://").rstrip("/")
             setup_link = f"{clean_base}/setup-password?token={token}"
-            return {"status": "success", "message": f'تم الحفظ! تعذر الإرسال ({mail_err})<br><a href="{setup_link}" target="_blank" dir="ltr" style="color:#00ff88;">افتح رابط تعيين كلمة المرور مباشرة</a>'}
+            return {"status": "success", "message": f'تم الحفظ! تعذر الإرسال ({mail_err})<br><a href="{setup_link}" target="_blank" dir="ltr" style="color:#00ff88;">افتح الرابط مباشرة</a>'}
     finally:
         conn.close()
 
@@ -179,7 +167,7 @@ def send_teacher_password_reset(request: Request, teacher_id: int):
     except Exception as mail_err:
         clean_base = base_url.replace("http://", "https://").rstrip("/")
         setup_link = f"{clean_base}/setup-password?token={token}"
-        return {"status": "success", "message": f'تعذر الإرسال ({mail_err})<br><a href="{setup_link}" target="_blank" dir="ltr" style="color:#00ff88;">افتح رابط تغيير كلمة المرور مباشرة</a>'}
+        return {"status": "success", "message": f'تعذر الإرسال ({mail_err})<br><a href="{setup_link}" target="_blank" dir="ltr" style="color:#00ff88;">افتح الرابط مباشرة</a>'}
 
 @router.post("/api/master/teachers/{teacher_id}/update")
 def update_teacher_info(teacher_id: int, teacher_name: str = Form(...), email: str = Form(...)):
@@ -211,6 +199,7 @@ def delete_teacher(teacher_id: int):
         conn.commit()
     conn.close()
     return {"status": "success", "message": "تم حذف حساب المعلم نهائياً"}
+
 @router.post("/api/teacher/activate-account")
 def activate_teacher_account(token: str = Form(...), new_password: str = Form(...)):
     conn = get_db()
@@ -218,18 +207,14 @@ def activate_teacher_account(token: str = Form(...), new_password: str = Form(..
         teacher = conn.execute("SELECT * FROM teacher_activations WHERE activation_token = ?", (token.strip(),)).fetchone()
         if not teacher:
             raise HTTPException(status_code=400, detail="الرابط غير صالح أو تم استخدامه مسبقاً")
-            
         email = teacher["email"]
         hashed_pw = hash_password(new_password.strip())
-        
         conn.execute("UPDATE teacher_activations SET password_hash = ?, is_active = 1, activation_token = NULL WHERE id = ?", (hashed_pw, teacher["id"]))
-        
         existing_inst = conn.execute("SELECT * FROM instructors WHERE username = ?", (email,)).fetchone()
         if existing_inst:
             conn.execute("UPDATE instructors SET password_hash = ?, status = 'active' WHERE username = ?", (hashed_pw, email))
         else:
             conn.execute("INSERT INTO instructors (username, password_hash, status) VALUES (?, ?, ?)", (email, hashed_pw, "active"))
-            
         conn.commit()
         return {"status": "success", "message": "تم حفظ كلمة المرور وتأمين الحساب بنجاح"}
     except HTTPException as he:
@@ -239,7 +224,6 @@ def activate_teacher_account(token: str = Form(...), new_password: str = Form(..
         raise HTTPException(status_code=500, detail=f"خطأ في قاعدة البيانات: {str(e)}")
     finally:
         conn.close()
-
 @router.post("/api/teacher/classes/create")
 def create_class(request: Request, class_name: str = Form(...), subject: str = Form("")):
     teacher_id = get_teacher_id(request)
@@ -315,6 +299,7 @@ def get_class_students(class_id: int):
     rows = conn.execute("SELECT * FROM class_enrollments WHERE class_id = ? ORDER BY student_name ASC", (class_id,)).fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
 @router.post("/api/teacher/classes/{class_id}/material")
 def add_class_material(class_id: int, item_type: str = Form(...), title: str = Form(...), content: str = Form(...)):
     conn = get_db()
@@ -356,7 +341,6 @@ def issue_class_certificate(class_id: int, student_code: str = Form(...), studen
     conn.commit()
     conn.close()
     return {"status": "success", "message": "تم إصدار الشهادة بنجاح", "cert_serial": serial}
-
 @router.get("/student-portal")
 def serve_student_portal():
     return FileResponse("student_portal.html")
@@ -392,11 +376,6 @@ def verify_classroom_cert(cert_serial: str):
         raise HTTPException(status_code=404, detail="الشهادة غير صالحة أو غير مسجلة")
     course_display = f"{cert['class_name']} - {cert['subject']}" if cert['subject'] else cert['class_name']
     return {"valid": True, "cert_serial": cert["cert_serial"], "student_id": f"{cert['student_name']} ({cert['student_code']})", "course_name": course_display, "cert_type": cert["cert_type"], "issue_date": cert["issue_date"]}
-
-# ==========================================
-# 5. نظام الاختبارات التفاعلية ذاتية التصحيح
-# ==========================================
-
 def init_quiz_tables():
     conn = get_db()
     cursor = conn.cursor()
@@ -468,6 +447,13 @@ def add_quiz_question(
     conn.close()
     return {"status": "success", "message": "تمت إضافة السؤال للاختبار"}
 
+@router.get("/api/teacher/quizzes/{quiz_id}/questions-list")
+def get_teacher_quiz_questions(quiz_id: int):
+    conn = get_db()
+    rows = conn.execute("SELECT * FROM quiz_questions WHERE quiz_id = ? ORDER BY id ASC", (quiz_id,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
 @router.get("/api/teacher/classes/{class_id}/quizzes")
 def list_class_quizzes(class_id: int):
     conn = get_db()
@@ -494,29 +480,21 @@ async def submit_student_quiz(quiz_id: int, request: Request):
     data = await request.json()
     email = data.get("student_code", "").strip().lower()
     answers = data.get("answers", {})
-    
     conn = get_db()
     existing = conn.execute("SELECT * FROM quiz_submissions WHERE quiz_id = ? AND student_code = ?", (quiz_id, email)).fetchone()
     if existing:
         conn.close()
         raise HTTPException(status_code=400, detail=f"لقد قمت بحل هذا الاختبار مسبقاً! درجتك: {existing['score']} من {existing['total']}")
-        
     st_row = conn.execute("SELECT student_name FROM class_enrollments WHERE student_code = ?", (email,)).fetchone()
     st_name = st_row["student_name"] if st_row else email
-    
     questions = conn.execute("SELECT id, correct_opt FROM quiz_questions WHERE quiz_id = ?", (quiz_id,)).fetchall()
     total = len(questions)
     score = 0
     for q in questions:
-        qid = str(q["id"])
-        if answers.get(qid, "").upper() == q["correct_opt"].upper():
+        if answers.get(str(q["id"]), "").upper() == q["correct_opt"].upper():
             score += 1
-            
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
-    conn.execute(
-        "INSERT INTO quiz_submissions (quiz_id, student_code, student_name, score, total, submitted_at) VALUES (?, ?, ?, ?, ?, ?)",
-        (quiz_id, email, st_name, score, total, now_str)
-    )
+    conn.execute("INSERT INTO quiz_submissions (quiz_id, student_code, student_name, score, total, submitted_at) VALUES (?, ?, ?, ?, ?, ?)", (quiz_id, email, st_name, score, total, now_str))
     conn.commit()
     conn.close()
     return {"status": "success", "score": score, "total": total, "message": f"تم تسليم الاختبار! نتيجتك: {score} من {total}"}

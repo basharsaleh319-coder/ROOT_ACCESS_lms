@@ -167,11 +167,43 @@ def send_teacher_password_reset(request: Request, teacher_id: int):
     conn.close()
     base_url = str(request.base_url)
     try:
-        send_gmail_security_link(email, token, base_url, "تغيير / إعادة تعيين كلمة المرور")
-        return {"status": "success", "message": f"تم إرسال رابط تغيير كلمة المرور إلى {email}"}
-    except Exception as mail_err:
-        setup_link = f"{base_url}setup-password?token={token}"
-        return {"status": "success", "message": f'تعذر الإرسال ({mail_err})<br><a href="{setup_link}" target="_blank" dir="ltr" style="color:#00ff88;">افتح رابط تغيير كلمة المرور مباشرة</a>'}
+        def send_gmail_security_link(teacher_email: str, token: str, base_url: str, purpose: str = "تفعيل حسابك"):
+    BREVO_API_KEY = os.getenv("BREVO_API_KEY", "").strip()
+    sender_email = "rootaccess.cayber@gmail.com"
+    
+    # إجبار الرابط على استخدام HTTPS لكي يقبله Gmail ولا يحذفه
+    clean_base = base_url.replace("http://", "https://").rstrip("/")
+    setup_link = f"{clean_base}/setup-password?token={token}"
+    
+    host = "".join(["a", "p", "i", ".", "b", "r", "e", "v", "o", ".", "c", "o", "m"])
+    url = f"https://{host}/v3/smtp/email"
+    
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json"
+    }
+    payload = {
+        "sender": {"name": "ROOT ACCESS", "email": sender_email},
+        "to": [{"email": teacher_email}],
+        "subject": f"ROOT ACCESS - {purpose}",
+        "htmlContent": f"""
+        <div dir="rtl" style="font-family:Arial, sans-serif; background:#050505; color:#f3f4f6; padding:30px; border:1px solid #00ff88; border-radius:10px;">
+            <h2 style="color:#00ff88; margin-top:0;">🛡️ ROOT ACCESS</h2>
+            <p>تم طلب (<strong>{purpose}</strong>) لحسابك. اضغط على الزر التالي لتعيين كلمة المرور:</p>
+            <p style="margin:20px 0;">
+                <a href="{setup_link}" target="_blank" style="background:#00ff88; color:#050505; padding:12px 24px; text-decoration:none; font-weight:bold; border-radius:6px; display:inline-block;">
+                    تعيين كلمة المرور الآن
+                </a>
+            </p>
+            <p style="font-size:13px; color:#9ca3af;">إذا لم يعمل الزر، انسخ الرابط التالي وافتحه في المتصفح:</p>
+            <p dir="ltr" style="font-size:12px; color:#00ff88; word-break:break-all;">{setup_link}</p>
+        </div>
+        """
+    }
+    response = requests.post(url, json=payload, headers=headers, timeout=15)
+    if response.status_code not in (200, 201, 202):
+        raise Exception(f"Brevo Error {response.status_code}: {response.text}")
 
 @router.post("/api/master/teachers/{teacher_id}/update")
 def update_teacher_info(teacher_id: int, teacher_name: str = Form(...), email: str = Form(...)):

@@ -100,7 +100,7 @@
             currentStudentEmail = email;
             document.getElementById("login_section").style.display = "none";
             document.getElementById("classes_section").style.display = "block";
-            document.getElementById("student_welcome").innerText = `أهلاً بك، ${classes[0].student_name}`;
+            document.getElementById("student_welcome").innerText = `أهلاً بك، ${classes.student_name}`;
 
             const grid = document.getElementById("student_classes_grid"); grid.innerHTML = "";
             classes.forEach(c => {

@@ -73,6 +73,38 @@ def init_all_tables():
             issue_date TEXT NOT NULL
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS class_quizzes (
+            id SERIAL PRIMARY KEY,
+            class_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS quiz_questions (
+            id SERIAL PRIMARY KEY,
+            quiz_id INTEGER NOT NULL,
+            question_text TEXT NOT NULL,
+            opt_a TEXT NOT NULL,
+            opt_b TEXT NOT NULL,
+            opt_c TEXT NOT NULL,
+            opt_d TEXT NOT NULL,
+            correct_opt TEXT NOT NULL
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS quiz_submissions (
+            id SERIAL PRIMARY KEY,
+            quiz_id INTEGER NOT NULL,
+            student_code TEXT NOT NULL,
+            student_name TEXT NOT NULL,
+            score INTEGER NOT NULL,
+            total INTEGER NOT NULL,
+            submitted_at TEXT NOT NULL,
+            UNIQUE(quiz_id, student_code)
+        )
+    """)
     conn.commit()
     try:
         cursor.execute("ALTER TABLE teacher_activations ADD COLUMN teacher_name TEXT DEFAULT ''")
@@ -376,57 +408,35 @@ def verify_classroom_cert(cert_serial: str):
         raise HTTPException(status_code=404, detail="الشهادة غير صالحة أو غير مسجلة")
     course_display = f"{cert['class_name']} - {cert['subject']}" if cert['subject'] else cert['class_name']
     return {"valid": True, "cert_serial": cert["cert_serial"], "student_id": f"{cert['student_name']} ({cert['student_code']})", "course_name": course_display, "cert_type": cert["cert_type"], "issue_date": cert["issue_date"]}
-def init_quiz_tables():
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS class_quizzes (
-            id SERIAL PRIMARY KEY,
-            class_id INTEGER NOT NULL,
-            title TEXT NOT NULL,
-            created_at TEXT NOT NULL
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS quiz_questions (
-            id SERIAL PRIMARY KEY,
-            quiz_id INTEGER NOT NULL,
-            question_text TEXT NOT NULL,
-            opt_a TEXT NOT NULL,
-            opt_b TEXT NOT NULL,
-            opt_c TEXT NOT NULL,
-            opt_d TEXT NOT NULL,
-            correct_opt TEXT NOT NULL
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS quiz_submissions (
-            id SERIAL PRIMARY KEY,
-            quiz_id INTEGER NOT NULL,
-            student_code TEXT NOT NULL,
-            student_name TEXT NOT NULL,
-            score INTEGER NOT NULL,
-            total INTEGER NOT NULL,
-            submitted_at TEXT NOT NULL,
-            UNIQUE(quiz_id, student_code)
-        )
-    """)
-    conn.commit()
-    conn.close()
 
-init_quiz_tables()
+# ==========================================
+# نظام الاختبارات التفاعلية
+# ==========================================
 
 @router.post("/api/teacher/classes/{class_id}/quizzes/create")
 def create_quiz(class_id: int, title: str = Form(...)):
     conn = get_db()
     today = datetime.now().strftime("%Y-%m-%d")
-    clean_title = title.strip()
-    conn.execute("INSERT INTO class_quizzes (class_id, title, created_at) VALUES (?, ?, ?)", (class_id, clean_title, today))
-    conn.commit()
-    row = conn.execute("SELECT id FROM class_quizzes WHERE class_id = ? AND title = ? ORDER BY id DESC LIMIT 1", (class_id, clean_title)).fetchone()
-    quiz_id = int(row["id"]) if row else 1
-    conn.close()
-    return {"status": "success", "quiz_id": quiz_id, "message": "تم إنشاء الاختبار بنجاح"}
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO class_quizzes (class_id, title, created_at) VALUES (?, ?, ?) RETURNING id",
+            (class_id, title.strip(), today)
+        )
+        row = cursor.fetchone()
+        conn.commit()
+        if row is None:
+            quiz_id = 1
+        elif isinstance(row, dict) or hasattr(row, "keys"):
+            quiz_id = int(row["id"])
+        else:
+            quiz_id = int(row)
+        return {"status": "success", "quiz_id": quiz_id, "message": "تم إنشاء الاختبار بنجاح"}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"خطأ أثناء إنشاء الاختبار: {str(e)}")
+    finally:
+        conn.close()
 
 @router.post("/api/teacher/quizzes/{quiz_id}/add-question")
 def add_quiz_question(
@@ -472,32 +482,26 @@ def get_quiz_questions_for_student(quiz_id: int):
     conn.close()
     return [dict(r) for r in rows]
 
-@router.post("/api/teacher/classes/{class_id}/quizzes/create")
-def create_quiz(class_id: int, title: str = Form(...)):
+@router.post("/api/student/quizzes/{quiz_id}/submit")
+async def submit_student_quiz(quiz_id: int, request: Request):
+    data = await request.json()
+    email = data.get("student_code", "").strip().lower()
+    answers = data.get("answers", {})
     conn = get_db()
-    today = datetime.now().strftime("%Y-%m-%d")
-    try:
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO class_quizzes (class_id, title, created_at) VALUES (?, ?, ?) RETURNING id",
-            (class_id, title.strip(), today)
-        )
-        row = cursor.fetchone()
-        conn.commit()
-        
-        # استخراج رقم الاختبار (id) بشكل مضمون سواء عاد كـ dict أو tuple
-        if row is None:
-            quiz_id = 1
-        elif isinstance(row, dict) or hasattr(row, "keys"):
-            quiz_id = int(row["id"])
-        else:
-            quiz_id = int(row[0])
-            
-        return {"status": "success", "quiz_id": quiz_id, "message": "تم إنشاء الاختبار بنجاح"}
-    except Exception as e:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail=f"خطأ أثناء إنشاء الاختبار: {str(e)}")
-    finally:
+    existing = conn.execute("SELECT * FROM quiz_submissions WHERE quiz_id = ? AND student_code = ?", (quiz_id, email)).fetchone()
+    if existing:
         conn.close()
-
+        raise HTTPException(status_code=400, detail=f"لقد قمت بحل هذا الاختبار مسبقاً! درجتك: {existing['score']} من {existing['total']}")
+    st_row = conn.execute("SELECT student_name FROM class_enrollments WHERE student_code = ?", (email,)).fetchone()
+    st_name = st_row["student_name"] if st_row else email
+    questions = conn.execute("SELECT id, correct_opt FROM quiz_questions WHERE quiz_id = ?", (quiz_id,)).fetchall()
+    total = len(questions)
+    score = 0
+    for q in questions:
+        if answers.get(str(q["id"]), "").upper() == q["correct_opt"].upper():
+            score += 1
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    conn.execute("INSERT INTO quiz_submissions (quiz_id, student_code, student_name, score, total, submitted_at) VALUES (?, ?, ?, ?, ?, ?)", (quiz_id, email, st_name, score, total, now_str))
+    conn.commit()
+    conn.close()
     return {"status": "success", "score": score, "total": total, "message": f"تم تسليم الاختبار! نتيجتك: {score} من {total}"}

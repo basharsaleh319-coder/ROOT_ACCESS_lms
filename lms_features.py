@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Form, Request
 from fastapi.responses import FileResponse
 from datetime import datetime
+import os
 import secrets
-import smtplib
-from email.mime.text import MIMEText
+import requests
 from database import get_db, hash_password
 
 router = APIRouter(tags=["ROOT ACCESS Core System"])
@@ -22,7 +22,6 @@ def init_all_tables():
             is_active INTEGER DEFAULT 0
         )
     """)
-    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS classes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,7 +30,6 @@ def init_all_tables():
             subject TEXT DEFAULT ''
         )
     """)
-    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS class_enrollments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,7 +40,6 @@ def init_all_tables():
             UNIQUE(class_id, student_code)
         )
     """)
-    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS class_materials (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,7 +50,6 @@ def init_all_tables():
             created_at TEXT NOT NULL
         )
     """)
-    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS class_attendance (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,7 +62,6 @@ def init_all_tables():
             is_exam INTEGER DEFAULT 0
         )
     """)
-    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS class_certificates (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -91,27 +86,35 @@ init_all_tables()
 def get_teacher_id(request: Request) -> int:
     val = request.cookies.get("instructor_id")
     return int(val) if val and val.isdigit() else 1
-def send_gmail_security_link(teacher_email: str, token: str, purpose: str = "تفعيل حسابك"):
+
+def send_gmail_security_link(teacher_email: str, token: str, base_url: str, purpose: str = "تفعيل حسابك"):
+    BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
     sender_email = "rootaccess.cayber@gmail.com"
-    sender_app_password = "yzaf ugqu hnat kust".replace(" ", "")
-    setup_link = f"http://127.0.0{token}"
+    setup_link = f"{base_url}setup-password?token={token}"
     
-    body = f"""مرحباً بك في منصة ROOT ACCESS LMS،
-تم طلب ({purpose}) لحسابك في النظام. يرجى الضغط على الرابط الآمن التالي لتعيين كلمة المرور الخاصة بك:
-
-{setup_link}
-
-ملاحظة أمنية: هذا الرابط مشفر وصالح للاستخدام لمرة واحدة فقط."""
-
-    msg = MIMEText(body, "plain", "utf-8")
-    msg["Subject"] = f"ROOT ACCESS LMS - {purpose}"
-    msg["From"] = sender_email
-    msg["To"] = teacher_email
-
-    with smtplib.SMTP_SSL("://gmail.com", 465) as server:
-        server.login(sender_email, sender_app_password)
-        server.sendmail(sender_email, teacher_email, msg.as_string())
-
+    url = "https://brevo.com"
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json"
+    }
+    payload = {
+        "sender": {"name": "ROOT ACCESS", "email": sender_email},
+        "to": [{"email": teacher_email}],
+        "subject": f"ROOT ACCESS - {purpose}",
+        "htmlContent": f"""
+        <div dir="rtl" style="font-family:Arial; background:#050505; color:#f3f4f6; padding:30px; border:1px solid #00ff88; border-radius:10px;">
+            <h2 style="color:#00ff88;">🛡️ ROOT ACCESS</h2>
+            <p>تم طلب (<strong>{purpose}</strong>) لحسابك. اضغط على الزر التالي لتعيين كلمة المرور:</p>
+            <a href="{setup_link}" style="display:inline-block; background:#00ff88; color:#050505; padding:12px 24px; text-decoration:none; font-weight:bold; border-radius:6px; margin:15px 0;">
+                تعيين كلمة المرور الآن
+            </a>
+        </div>
+        """
+    }
+    response = requests.post(url, json=payload, headers=headers, timeout=15)
+    if response.status_code not in (200, 201, 202):
+        raise Exception(f"Brevo Error {response.status_code}: {response.text}")
 @router.get("/setup-password")
 def serve_setup_page():
     return FileResponse("setup_password.html")
@@ -124,14 +127,14 @@ def get_all_teachers():
     return [dict(r) for r in rows]
 
 @router.post("/api/master/invite-teacher")
-def invite_teacher(teacher_name: str = Form(""), email: str = Form(...)):
+def invite_teacher(request: Request, teacher_name: str = Form(""), email: str = Form(...)):
     email = email.strip().lower()
     name = teacher_name.strip() or email.split("@")
     if not email or "@" not in email:
         raise HTTPException(status_code=400, detail="يرجى إدخال بريد Gmail صحيح")
-        
     conn = get_db()
     token = secrets.token_urlsafe(32)
+    base_url = str(request.base_url)
     try:
         existing = conn.execute("SELECT * FROM teacher_activations WHERE email = ?", (email,)).fetchone()
         if existing:
@@ -139,36 +142,34 @@ def invite_teacher(teacher_name: str = Form(""), email: str = Form(...)):
         else:
             conn.execute("INSERT INTO teacher_activations (teacher_name, email, activation_token, is_active) VALUES (?, ?, ?, 0)", (name, email, token))
         conn.commit()
-        
         try:
-            send_gmail_security_link(email, token, "تفعيل حساب المعلم وإنشاء كلمة المرور")
+            send_gmail_security_link(email, token, base_url, "تفعيل حساب المعلم وإنشاء كلمة المرور")
             return {"status": "success", "message": f"تم إرسال رابط التفعيل بنجاح إلى: {email}"}
         except Exception as mail_err:
-            setup_link = f"http://127.0.0{token}"
-            return {"status": "success", "message": f'تم الحفظ! تعذر إرسال Gmail ({mail_err})<br><a href="{setup_link}" target="_blank" dir="ltr" style="color:#00ff88;">افتح رابط تعيين كلمة المرور مباشرة</a>'}
+            setup_link = f"{base_url}setup-password?token={token}"
+            return {"status": "success", "message": f'تم الحفظ! تعذر الإرسال ({mail_err})<br><a href="{setup_link}" target="_blank" dir="ltr" style="color:#00ff88;">افتح رابط تعيين كلمة المرور مباشرة</a>'}
     finally:
         conn.close()
 
 @router.post("/api/master/teachers/{teacher_id}/reset-password")
-def send_teacher_password_reset(teacher_id: int):
+def send_teacher_password_reset(request: Request, teacher_id: int):
     conn = get_db()
     teacher = conn.execute("SELECT * FROM teacher_activations WHERE id = ?", (teacher_id,)).fetchone()
     if not teacher:
         conn.close()
         raise HTTPException(status_code=404, detail="المعلم غير موجود")
-        
     token = secrets.token_urlsafe(32)
     conn.execute("UPDATE teacher_activations SET activation_token = ? WHERE id = ?", (token, teacher_id))
     conn.commit()
     email = teacher["email"]
     conn.close()
-    
+    base_url = str(request.base_url)
     try:
-        send_gmail_security_link(email, token, "تغيير / إعادة تعيين كلمة المرور")
+        send_gmail_security_link(email, token, base_url, "تغيير / إعادة تعيين كلمة المرور")
         return {"status": "success", "message": f"تم إرسال رابط تغيير كلمة المرور إلى {email}"}
     except Exception as mail_err:
-        setup_link = f"http://127.0.0{token}"
-        return {"status": "success", "message": f'تعذر الإرسال عبر Gmail ({mail_err})<br><a href="{setup_link}" target="_blank" dir="ltr" style="color:#00ff88;">افتح رابط تغيير كلمة المرور مباشرة</a>'}
+        setup_link = f"{base_url}setup-password?token={token}"
+        return {"status": "success", "message": f'تعذر الإرسال ({mail_err})<br><a href="{setup_link}" target="_blank" dir="ltr" style="color:#00ff88;">افتح رابط تغيير كلمة المرور مباشرة</a>'}
 
 @router.post("/api/master/teachers/{teacher_id}/update")
 def update_teacher_info(teacher_id: int, teacher_name: str = Form(...), email: str = Form(...)):
@@ -177,7 +178,6 @@ def update_teacher_info(teacher_id: int, teacher_name: str = Form(...), email: s
     if not old:
         conn.close()
         raise HTTPException(status_code=404, detail="المعلم غير موجود")
-        
     new_email = email.strip().lower()
     new_name = teacher_name.strip()
     try:
@@ -207,13 +207,10 @@ def activate_teacher_account(token: str = Form(...), new_password: str = Form(..
     if not teacher:
         conn.close()
         raise HTTPException(status_code=400, detail="الرابط غير صالح أو تم استخدامه مسبقاً")
-        
     email = teacher["email"]
     name = teacher["teacher_name"] or email.split("@")
     hashed_pw = hash_password(new_password.strip())
-    
     conn.execute("UPDATE teacher_activations SET password_hash = ?, is_active = 1, activation_token = NULL WHERE id = ?", (hashed_pw, teacher["id"]))
-    
     existing_inst = conn.execute("SELECT * FROM instructors WHERE username = ?", (email,)).fetchone()
     if existing_inst:
         conn.execute("UPDATE instructors SET name = ?, password_hash = ?, status = 'active' WHERE username = ?", (name, hashed_pw, email))
@@ -264,15 +261,10 @@ def add_student_to_class(class_id: int, student_code: str = Form(...), student_n
     if "@" not in email:
         conn.close()
         raise HTTPException(status_code=400, detail="يرجى إدخال بريد Gmail صحيح للطالب!")
-        
     existing = conn.execute("SELECT access_pin FROM class_enrollments WHERE student_code = ?", (email,)).fetchone()
     pin = existing["access_pin"] if (existing and existing["access_pin"]) else str(secrets.randbelow(9000) + 1000)
-    
     try:
-        conn.execute(
-            "INSERT INTO class_enrollments (class_id, student_code, student_name, access_pin) VALUES (?, ?, ?, ?)",
-            (class_id, email, student_name.strip(), pin)
-        )
+        conn.execute("INSERT INTO class_enrollments (class_id, student_code, student_name, access_pin) VALUES (?, ?, ?, ?)", (class_id, email, student_name.strip(), pin))
         conn.commit()
         return {"status": "success", "message": f"تمت إضافة {student_name} | رمز الدخول السري (PIN): {pin}", "pin": pin}
     except Exception:
@@ -332,15 +324,9 @@ def delete_class_material(material_id: int):
     return {"status": "success", "message": "تم حذف المحتوى"}
 
 @router.post("/api/teacher/classes/{class_id}/attendance")
-def record_class_attendance(
-    class_id: int, record_date: str = Form(...), student_code: str = Form(...),
-    status: str = Form(...), late_minutes: int = Form(0), notes: str = Form(""), is_exam: bool = Form(False)
-):
+def record_class_attendance(class_id: int, record_date: str = Form(...), student_code: str = Form(...), status: str = Form(...), late_minutes: int = Form(0), notes: str = Form(""), is_exam: bool = Form(False)):
     conn = get_db()
-    conn.execute(
-        "INSERT INTO class_attendance (class_id, record_date, student_code, status, late_minutes, notes, is_exam) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (class_id, record_date, student_code.strip().lower(), status, late_minutes if status == "late" else 0, notes, int(is_exam))
-    )
+    conn.execute("INSERT INTO class_attendance (class_id, record_date, student_code, status, late_minutes, notes, is_exam) VALUES (?, ?, ?, ?, ?, ?, ?)", (class_id, record_date, student_code.strip().lower(), status, late_minutes if status == "late" else 0, notes, int(is_exam)))
     conn.commit()
     conn.close()
     return {"status": "success", "message": "تم حفظ سجل اليوم في الرزنامة"}
@@ -350,10 +336,7 @@ def issue_class_certificate(class_id: int, student_code: str = Form(...), studen
     conn = get_db()
     serial = f"RA-2026-{secrets.token_hex(3).upper()}"
     today = datetime.now().strftime("%Y-%m-%d")
-    conn.execute(
-        "INSERT INTO class_certificates (cert_serial, class_id, student_code, student_name, cert_type, issue_date) VALUES (?, ?, ?, ?, ?, ?)",
-        (serial, class_id, student_code.strip().lower(), student_name.strip(), cert_type, today)
-    )
+    conn.execute("INSERT INTO class_certificates (cert_serial, class_id, student_code, student_name, cert_type, issue_date) VALUES (?, ?, ?, ?, ?, ?)", (serial, class_id, student_code.strip().lower(), student_name.strip(), cert_type, today))
     conn.commit()
     conn.close()
     return {"status": "success", "message": "تم إصدار الشهادة بنجاح", "cert_serial": serial}
@@ -365,12 +348,7 @@ def serve_student_portal():
 @router.get("/api/student/{student_code}/classes")
 def get_student_enrolled_classes(student_code: str, pin: str = ""):
     conn = get_db()
-    rows = conn.execute("""
-        SELECT c.id, c.class_name, c.subject, e.student_name 
-        FROM classes c
-        JOIN class_enrollments e ON c.id = e.class_id
-        WHERE e.student_code = ? AND e.access_pin = ?
-    """, (student_code.strip().lower(), pin.strip())).fetchall()
+    rows = conn.execute("SELECT c.id, c.class_name, c.subject, e.student_name FROM classes c JOIN class_enrollments e ON c.id = e.class_id WHERE e.student_code = ? AND e.access_pin = ?", (student_code.strip().lower(), pin.strip())).fetchall()
     conn.close()
     return [dict(r) for r in rows]
 

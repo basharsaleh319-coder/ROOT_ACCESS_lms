@@ -12,7 +12,6 @@ def init_all_tables():
     conn = get_db()
     cursor = conn.cursor()
     
-    # استخدام SERIAL PRIMARY KEY ليتوافق مع Neon PostgreSQL
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS teacher_activations (
             id SERIAL PRIMARY KEY,
@@ -138,7 +137,7 @@ def get_all_teachers():
 @router.post("/api/master/invite-teacher")
 def invite_teacher(request: Request, teacher_name: str = Form(""), email: str = Form(...)):
     email = email.strip().lower()
-    name = teacher_name.strip() or email.split("@")
+    name = teacher_name.strip() or email.split("@")[0]
     if not email or "@" not in email:
         raise HTTPException(status_code=400, detail="يرجى إدخال بريد Gmail صحيح")
     conn = get_db()
@@ -193,7 +192,7 @@ def update_teacher_info(teacher_id: int, teacher_name: str = Form(...), email: s
     new_name = teacher_name.strip()
     try:
         conn.execute("UPDATE teacher_activations SET teacher_name = ?, email = ? WHERE id = ?", (new_name, new_email, teacher_id))
-        conn.execute("UPDATE instructors SET name = ?, username = ? WHERE username = ?", (new_name, new_email, old["email"]))
+        conn.execute("UPDATE instructors SET username = ? WHERE username = ?", (new_email, old["email"]))
         conn.commit()
         return {"status": "success", "message": "تم تحديث بيانات المعلم بنجاح"}
     except Exception:
@@ -221,21 +220,16 @@ def activate_teacher_account(token: str = Form(...), new_password: str = Form(..
             raise HTTPException(status_code=400, detail="الرابط غير صالح أو تم استخدامه مسبقاً")
             
         email = teacher["email"]
-        raw_name = teacher["teacher_name"]
-        name = raw_name if (raw_name and isinstance(raw_name, str)) else email.split("@")
         hashed_pw = hash_password(new_password.strip())
         
         conn.execute("UPDATE teacher_activations SET password_hash = ?, is_active = 1, activation_token = NULL WHERE id = ?", (hashed_pw, teacher["id"]))
         
         existing_inst = conn.execute("SELECT * FROM instructors WHERE username = ?", (email,)).fetchone()
         if existing_inst:
-            conn.execute("UPDATE instructors SET name = ?, password_hash = ?, status = 'active' WHERE username = ?", (name, hashed_pw, email))
+            conn.execute("UPDATE instructors SET password_hash = ?, status = 'active' WHERE username = ?", (hashed_pw, email))
         else:
-            try:
-                conn.execute("INSERT INTO instructors (name, username, password_hash, plan, status) VALUES (?, ?, ?, ?, ?)", (name, email, hashed_pw, "Standard", "active"))
-            except Exception:
-                conn.rollback()
-                conn.execute("INSERT INTO instructors (name, username, password_hash, status) VALUES (?, ?, ?, ?)", (name, email, hashed_pw, "active"))
+            conn.execute("INSERT INTO instructors (username, password_hash, status) VALUES (?, ?, ?)", (email, hashed_pw, "active"))
+            
         conn.commit()
         return {"status": "success", "message": "تم حفظ كلمة المرور وتأمين الحساب بنجاح"}
     except HTTPException as he:

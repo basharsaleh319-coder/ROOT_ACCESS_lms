@@ -3,36 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة المعلم وإدارة الصفوف - ROOT ACCESS LMS</title>
+    <title>لوحة المعلم وإدارة الصفوف - ROOT ACCESS</title>
     <style>
         :root {
-            --bg-black: #050505;
-            --card-dark: #0d1117;
-            --sidebar-bg: #090d12;
-            --border-dark: #1f2937;
-            --neon-green: #00ff88;
-            --neon-dim: rgba(0, 255, 136, 0.12);
-            --amber: #f59e0b;
-            --danger: #ef4444;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
+            --bg-black: #050505; --card-dark: #0d1117; --sidebar-bg: #090d12;
+            --border-dark: #1f2937; --neon-green: #00ff88; --neon-dim: rgba(0, 255, 136, 0.12);
+            --amber: #f59e0b; --danger: #ef4444; --text-main: #f3f4f6; --text-muted: #9ca3af;
         }
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
         body { background-color: var(--bg-black); color: var(--text-main); margin: 0; padding: 0; }
-        
         header {
             background-color: var(--card-dark); padding: 15px 30px; border-bottom: 1px solid var(--neon-green);
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+            display: flex; justify-content: space-between; align-items: center; box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
         }
-        .brand { font-size: 20px; font-weight: bold; color: var(--neon-green); letter-spacing: 1px; text-shadow: 0 0 8px rgba(0, 255, 136, 0.4); }
+        .brand { font-size: 20px; font-weight: bold; color: var(--neon-green); letter-spacing: 1px; }
         .logout-btn { color: var(--danger); border: 1px solid var(--danger); padding: 6px 14px; border-radius: 6px; text-decoration: none; font-weight: bold; }
         .logout-btn:hover { background: var(--danger); color: white; }
-
-        .layout { display: grid; grid-template-columns: 290px 1fr; min-height: calc(100vh - 60px); }
+        .layout { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 60px); }
         .sidebar { background: var(--sidebar-bg); border-left: 1px solid var(--border-dark); padding: 20px; }
         .main-area { padding: 25px; }
-
         .class-item {
             background: var(--card-dark); border: 1px solid var(--border-dark); padding: 12px 15px;
             border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: 0.2s;
@@ -41,39 +30,31 @@
         .class-item:hover, .class-item.active { border-color: var(--neon-green); background: var(--neon-dim); }
         .class-item h4 { margin: 0 0 4px 0; color: var(--neon-green); font-size: 16px; }
         .class-item span { font-size: 12px; color: var(--text-muted); }
-
         .card { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 12px; padding: 22px; margin-bottom: 20px; }
         input, select, textarea {
             width: 100%; padding: 11px; margin: 6px 0 14px; background: var(--bg-black);
             border: 1px solid #374151; border-radius: 8px; color: white; font-size: 14px; outline: none;
         }
         input:focus, select:focus, textarea:focus { border-color: var(--neon-green); }
-
         .btn { padding: 11px 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
         .btn-neon { background: var(--neon-green); color: #050505; width: 100%; }
-        .btn-neon:hover { background: #00cc6a; box-shadow: 0 0 12px rgba(0, 255, 136, 0.35); }
         .btn-amber { background: var(--amber); color: #050505; width: 100%; }
         .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 5px; margin-left: 4px; }
         .btn-edit { background: #1f2937; color: var(--neon-green); border: 1px solid var(--neon-green); }
         .btn-del { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
-
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
         .tab-btn {
             background: var(--card-dark); color: var(--text-muted); border: 1px solid var(--border-dark);
-            padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold;
+            padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 13px;
         }
         .tab-btn.active { background: var(--neon-green); color: #050505; border-color: var(--neon-green); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-
         table { width: 100%; border-collapse: collapse; margin-top: 12px; }
         th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--border-dark); font-size: 14px; }
         th { color: var(--neon-green); background: var(--bg-black); }
         .toast { padding: 12px; border-radius: 8px; margin-top: 12px; font-weight: bold; display: none; }
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000;
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: var(--card-dark); border: 1px solid var(--neon-green); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; }
     </style>
 </head>
@@ -84,7 +65,6 @@
     </header>
 
     <div class="layout">
-        <!-- القائمة الجانبية: الصفوف الدراسية -->
         <aside class="sidebar">
             <h3 style="margin-top:0; color:var(--neon-green);">➕ إنشاء صف جديد</h3>
             <form id="createClassForm">
@@ -96,12 +76,10 @@
             <h3 style="color:var(--text-muted); font-size:14px;">📚 قائمة صفوفي:</h3>
             <div id="classes_list"></div>
         </aside>
-
-        <!-- مساحة العمل الرئيسية -->
         <main class="main-area">
-            <div id="no_class_selected" class="card" style="text-align:center; padding:60px 20px; border-color:var(--border-dark);">
+            <div id="no_class_selected" class="card" style="text-align:center; padding:60px 20px;">
                 <h2 style="color:var(--neon-green);">اختر صفاً من القائمة اليمنى للبدء</h2>
-                <p style="color:var(--text-muted);">اضغط على أي صف (مثل عاشر ب) لإدارة طلابه، مهامه، رزنامة الحضور، وإصدار الشهادات.</p>
+                <p style="color:var(--text-muted);">اضغط على أي صف لإدارة طلابه، مهامه، رزنامة الحضور، الاختبارات، والشهادات.</p>
             </div>
 
             <div id="class_workspace" style="display:none;">
@@ -113,10 +91,10 @@
                     <span id="students_count_badge" style="background:var(--bg-black); border:1px solid var(--neon-green); padding:6px 14px; border-radius:20px; color:var(--neon-green); font-weight:bold;"></span>
                 </div>
 
-                <!-- التبويبات الأربعة -->
                 <div class="tabs">
                     <button class="tab-btn active" onclick="switchTab('tab_students', this)">👥 طلاب الصف</button>
-                    <button class="tab-btn" onclick="switchTab('tab_materials', this)">📎 رابط / مهمة / أسئلة</button>
+                    <button class="tab-btn" onclick="switchTab('tab_materials', this)">📎 رابط / مهمة</button>
+                    <button class="tab-btn" onclick="switchTab('tab_quizzes', this)">🧠 الاختبارات التفاعلية</button>
                     <button class="tab-btn" onclick="switchTab('tab_attendance', this)">📅 الرزنامة والحضور</button>
                     <button class="tab-btn" onclick="switchTab('tab_cert', this)">🎓 إصدار شهادة</button>
                 </div>
@@ -131,41 +109,71 @@
                     </form>
                     <div id="st_msg" class="toast"></div>
 
-                    <h3 style="margin-top:25px; color:var(--text-main);">قائمة طلاب الصف المسجلين:</h3>
+                    <h3 style="margin-top:25px;">قائمة طلاب الصف المسجلين:</h3>
                     <table>
-                        <thead>
-                            <tr>
-                                <th>اسم الطالب</th>
-                                <th>حساب Gmail</th>
-                                <th>رمز الدخول (PIN)</th>
-                                <th>إجراءات</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>اسم الطالب</th><th>حساب Gmail</th><th>رمز الدخول (PIN)</th><th>إجراءات</th></tr></thead>
                         <tbody id="class_students_tbody"></tbody>
                     </table>
                 </div>
-                <!-- 2. تبويب نشر رابط / مهمة / أسئلة -->
+
+                <!-- 2. تبويب نشر رابط / مهمة -->
                 <div id="tab_materials" class="tab-content card">
                     <h3 style="margin-top:0; color:var(--neon-green);">نشر محتوى تعليمي لطلاب الصف</h3>
                     <form id="materialForm">
                         <label>نوع المحتوى:</label>
                         <select id="mat_type">
                             <option value="task">📝 مهمة / وظيفة منزلية</option>
-                            <option value="question">❓ أسئلة / اختبار قصير</option>
-                            <option value="link">🔗 رابط خارجي (حصة Zoom / ملخص / فيديو)</option>
+                            <option value="link">🔗 رابط خارجي (حصة مباشرة / ملخص / فيديو)</option>
                         </select>
                         <label>العنوان:</label>
-                        <input type="text" id="mat_title" placeholder="مثال: وظيفة الدرس الأول أو رابط الحصة المباشرة" required>
+                        <input type="text" id="mat_title" placeholder="مثال: وظيفة الدرس الأول أو رابط الحصة" required>
                         <label>التفاصيل أو الرابط:</label>
-                        <textarea id="mat_content" rows="3" placeholder="اكتب نص المهمة، الأسئلة، أو الصق الرابط هنا..." required></textarea>
+                        <textarea id="mat_content" rows="3" placeholder="اكتب نص المهمة أو الصق الرابط هنا..." required></textarea>
                         <button type="submit" class="btn btn-neon">نشر لطلاب الصف</button>
                     </form>
                     <div id="mat_msg" class="toast"></div>
-                    <h4 style="margin-top:25px; color:var(--text-muted);">المحتوى المنشور في هذا الصف:</h4>
+                    <h4 style="margin-top:25px; color:var(--text-muted);">المحتوى المنشور:</h4>
                     <div id="class_materials_list"></div>
                 </div>
+                <!-- 3. تبويب الاختبارات التفاعلية ذاتية التصحيح -->
+                <div id="tab_quizzes" class="tab-content card">
+                    <h3 style="margin-top:0; color:var(--neon-green);">🧠 إنشاء اختبار تفاعلي جديد</h3>
+                    <form id="createQuizForm" style="display:flex; gap:10px; margin-bottom:20px;">
+                        <input type="text" id="quiz_title" placeholder="عنوان الاختبار (مثال: اختبار الوحدة الأولى)" required style="margin:0;">
+                        <button type="submit" class="btn btn-neon" style="width:auto;">إنشاء الاختبار</button>
+                    </form>
 
-                <!-- 3. تبويب الرزنامة والحضور والملاحظات -->
+                    <div id="quiz_builder_box" style="display:none; border:1px solid var(--neon-green); padding:15px; border-radius:8px; margin-bottom:20px; background:#050505;">
+                        <h4 id="builder_quiz_title" style="color:var(--neon-green); margin-top:0;"></h4>
+                        <form id="addQuestionForm">
+                            <input type="text" id="q_text" placeholder="نص السؤال..." required>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                <input type="text" id="opt_a" placeholder="الخيار A" required style="margin:0;">
+                                <input type="text" id="opt_b" placeholder="الخيار B" required style="margin:0;">
+                                <input type="text" id="opt_c" placeholder="الخيار C" required style="margin:0;">
+                                <input type="text" id="opt_d" placeholder="الخيار D" required style="margin:0;">
+                            </div>
+                            <label style="margin-top:10px; display:block;">الإجابة الصحيحة:</label>
+                            <select id="correct_opt">
+                                <option value="A">الخيار A</option>
+                                <option value="B">الخيار B</option>
+                                <option value="C">الخيار C</option>
+                                <option value="D">الخيار D</option>
+                            </select>
+                            <button type="submit" class="btn btn-neon">➕ إضافة السؤال للاختبار</button>
+                        </form>
+                        <div id="q_msg" class="toast"></div>
+                    </div>
+
+                    <h4 style="color:var(--text-muted);">اختبارات الصف ودرجات الطلاب:</h4>
+                    <div id="quizzes_list"></div>
+                    <table id="quizResultsTable" style="display:none; margin-top:15px;">
+                        <thead><tr><th>اسم الطالب</th><th>البريد</th><th>الدرجة</th><th>وقت التسليم</th></tr></thead>
+                        <tbody id="quiz_results_tbody"></tbody>
+                    </table>
+                </div>
+
+                <!-- 4. تبويب الرزنامة والحضور -->
                 <div id="tab_attendance" class="tab-content card">
                     <h3 style="margin-top:0; color:var(--neon-green);">📅 تسجيل الحضور والتأخير وملاحظات اليوم</h3>
                     <form id="attForm">
@@ -183,7 +191,7 @@
                             <label>دقائق التأخير:</label>
                             <input type="number" id="att_late_min" value="5" min="1">
                         </div>
-                        <label>ملاحظات المعلمة لهذا اليوم (مثلاً: قدمت امتحان، واجب...):</label>
+                        <label>ملاحظات المعلمة لهذا اليوم:</label>
                         <textarea id="att_notes" rows="3" placeholder="اكتب ملاحظات اليوم..."></textarea>
                         <label style="display:flex; align-items:center; gap:8px; margin-bottom:15px;">
                             <input type="checkbox" id="att_is_exam" style="width:auto; margin:0;"> تمييز اليوم كـ <strong style="color:var(--neon-green);">"يوم امتحان"</strong> في الرزنامة
@@ -193,7 +201,7 @@
                     <div id="att_msg" class="toast"></div>
                 </div>
 
-                <!-- 4. تبويب إصدار شهادة -->
+                <!-- 5. تبويب إصدار شهادة -->
                 <div id="tab_cert" class="tab-content card">
                     <h3 style="margin-top:0; color:var(--amber);">🎓 إصدار شهادة معتمدة لطالب من هذا الصف</h3>
                     <form id="certForm">
@@ -213,7 +221,6 @@
         </main>
     </div>
 
-    <!-- نافذة تعديل بيانات الطالب -->
     <div id="editStudentModal" class="modal">
         <div class="modal-content">
             <h3 style="color:var(--neon-green); margin-top:0;">✏️ تعديل بيانات الطالب</h3>
@@ -230,6 +237,7 @@
     </div>
     <script>
         let currentClassId = null;
+        let activeQuizId = null;
         document.getElementById("att_date").valueAsDate = new Date();
 
         function switchTab(tabId, btn) {
@@ -247,19 +255,13 @@
             classes.forEach(c => {
                 const div = document.createElement("div");
                 div.className = "class-item" + (c.id === currentClassId ? " active" : "");
-                div.innerHTML = `
-                    <div onclick="selectClass(${c.id}, '${c.class_name}', '${c.subject}')" style="flex:1;">
-                        <h4>${c.class_name}</h4>
-                        <span>${c.subject || "عام"}</span>
-                    </div>
-                    <button class="btn btn-sm btn-del" onclick="deleteClass(${c.id}, '${c.class_name}')" title="حذف الصف">🗑️</button>
-                `;
+                div.innerHTML = `<div onclick="selectClass(${c.id}, '${c.class_name}', '${c.subject}')" style="flex:1;"><h4>${c.class_name}</h4><span>${c.subject || "عام"}</span></div><button class="btn btn-sm btn-del" onclick="deleteClass(${c.id}, '${c.class_name}')">🗑️</button>`;
                 list.appendChild(div);
             });
         }
 
         async function deleteClass(id, name) {
-            if (!confirm(`هل أنت متأكد من حذف صف (${name}) وجميع طلابه؟`)) return;
+            if (!confirm(`حذف صف (${name}) وجميع بياناته؟`)) return;
             await fetch(`/api/teacher/classes/${id}`, { method: "DELETE" });
             if (currentClassId === id) {
                 currentClassId = null;
@@ -278,29 +280,20 @@
             document.getElementById("active_class_subject").innerText = subject || "";
             await loadClassStudents();
             await loadClassMaterials();
+            await loadClassQuizzes();
         }
 
         async function loadClassStudents() {
             const res = await fetch(`/api/teacher/classes/${currentClassId}/students`);
             const students = await res.json();
             document.getElementById("students_count_badge").innerText = `عدد الطلاب: ${students.length}`;
-
             const tbody = document.getElementById("class_students_tbody");
             const attSel = document.getElementById("att_student_select");
             const certSel = document.getElementById("cert_student_select");
             tbody.innerHTML = ""; attSel.innerHTML = ""; certSel.innerHTML = "";
 
             students.forEach(st => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${st.student_name}</strong></td>
-                        <td dir="ltr" style="text-align:right; font-family:monospace;">${st.student_code}</td>
-                        <td style="color:#00ff88; font-family:monospace; font-size:15px; font-weight:bold;">${st.access_pin}</td>
-                        <td>
-                            <button class="btn btn-sm btn-edit" onclick="openEditStudent(${st.id}, '${st.student_name}', '${st.student_code}')">✏️ تعديل</button>
-                            <button class="btn btn-sm btn-del" onclick="deleteStudent(${st.id}, '${st.student_name}')">🗑️ حذف</button>
-                        </td>
-                    </tr>`;
+                tbody.innerHTML += `<tr><td><strong>${st.student_name}</strong></td><td dir="ltr" style="text-align:right; font-family:monospace;">${st.student_code}</td><td style="color:#00ff88; font-family:monospace; font-weight:bold;">${st.access_pin}</td><td><button class="btn btn-sm btn-edit" onclick="openEditStudent(${st.id}, '${st.student_name}', '${st.student_code}')">✏️</button><button class="btn btn-sm btn-del" onclick="deleteStudent(${st.id}, '${st.student_name}')">🗑️</button></td></tr>`;
                 const opt = `<option value="${st.student_code}" data-name="${st.student_name}">${st.student_name} (${st.student_code})</option>`;
                 attSel.innerHTML += opt;
                 certSel.innerHTML += opt;
@@ -327,32 +320,79 @@
         }
 
         async function deleteStudent(id, name) {
-            if (!confirm(`حذف الطالب (${name}) من هذا الصف؟`)) return;
+            if (!confirm(`حذف الطالب (${name})؟`)) return;
             const res = await fetch(`/api/teacher/students/${id}`, { method: "DELETE" });
             const data = await res.json();
             showToast("st_msg", res.ok, data.message);
             loadClassStudents();
         }
+
         async function loadClassMaterials() {
             const res = await fetch(`/api/teacher/classes/${currentClassId}/materials`);
             const items = await res.json();
             const div = document.getElementById("class_materials_list");
-            div.innerHTML = items.length ? "" : "<p style='color:#9ca3af; font-size:13px;'>لا يوجد محتوى منشور بعد.</p>";
+            div.innerHTML = items.length ? "" : "<p style='color:#9ca3af; font-size:13px;'>لا يوجد محتوى منشور.</p>";
             items.forEach(m => {
-                div.innerHTML += `
-                    <div style="background:#050505; border:1px solid #1f2937; padding:12px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <strong style="color:#00ff88;">${m.title}</strong> <small style="color:#9ca3af;">(${m.created_at})</small>
-                            <p style="margin:4px 0 0; font-size:13px; color:#d1d5db;">${m.content}</p>
-                        </div>
-                        <button class="btn btn-sm btn-del" onclick="deleteMaterial(${m.id})">🗑️</button>
-                    </div>`;
+                div.innerHTML += `<div style="background:#050505; border:1px solid #1f2937; padding:12px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><div><strong style="color:#00ff88;">${m.title}</strong><p style="margin:4px 0 0; font-size:13px; color:#d1d5db;">${m.content}</p></div><button class="btn btn-sm btn-del" onclick="deleteMaterial(${m.id})">🗑️</button></div>`;
             });
         }
 
         async function deleteMaterial(id) {
             await fetch(`/api/teacher/materials/${id}`, { method: "DELETE" });
             loadClassMaterials();
+        }
+        async function loadClassQuizzes() {
+            const res = await fetch(`/api/teacher/classes/${currentClassId}/quizzes`);
+            const quizzes = await res.json();
+            const div = document.getElementById("quizzes_list");
+            div.innerHTML = quizzes.length ? "" : "<p style='color:#9ca3af; font-size:13px;'>لا توجد اختبارات بعد.</p>";
+            quizzes.forEach(q => {
+                div.innerHTML += `<div style="background:#050505; border:1px solid #1f2937; padding:12px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><strong style="color:#00ff88;">${q.title}</strong><div><button class="btn btn-sm btn-edit" onclick="openQuizBuilder(${q.id}, '${q.title}')">➕ أسئلة</button><button class="btn btn-sm" style="background:#00ff88; color:#050505;" onclick="viewQuizResults(${q.id})">📊 الدرجات</button></div></div>`;
+            });
+        }
+
+        function openQuizBuilder(id, title) {
+            activeQuizId = id;
+            document.getElementById("quiz_builder_box").style.display = "block";
+            document.getElementById("builder_quiz_title").innerText = "إضافة أسئلة إلى: " + title;
+        }
+
+        document.getElementById("createQuizForm").addEventListener("submit", async e => {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append("title", document.getElementById("quiz_title").value);
+            const res = await fetch(`/api/teacher/classes/${currentClassId}/quizzes/create`, { method: "POST", body: fd });
+            const data = await res.json();
+            document.getElementById("quiz_title").value = "";
+            loadClassQuizzes();
+            openQuizBuilder(data.quiz_id, "الاختبار الجديد");
+        });
+
+        document.getElementById("addQuestionForm").addEventListener("submit", async e => {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append("question_text", document.getElementById("q_text").value);
+            fd.append("opt_a", document.getElementById("opt_a").value);
+            fd.append("opt_b", document.getElementById("opt_b").value);
+            fd.append("opt_c", document.getElementById("opt_c").value);
+            fd.append("opt_d", document.getElementById("opt_d").value);
+            fd.append("correct_opt", document.getElementById("correct_opt").value);
+            const res = await fetch(`/api/teacher/quizzes/${activeQuizId}/add-question`, { method: "POST", body: fd });
+            const data = await res.json();
+            showToast("q_msg", res.ok, data.message);
+            if (res.ok) document.getElementById("addQuestionForm").reset();
+        });
+
+        async function viewQuizResults(quizId) {
+            const res = await fetch(`/api/teacher/quizzes/${quizId}/results`);
+            const rows = await res.json();
+            const table = document.getElementById("quizResultsTable");
+            const tbody = document.getElementById("quiz_results_tbody");
+            table.style.display = "table";
+            tbody.innerHTML = rows.length ? "" : "<tr><td colspan='4' style='text-align:center;'>لا توجد إجابات بعد.</td></tr>";
+            rows.forEach(r => {
+                tbody.innerHTML += `<tr><td><strong>${r.student_name}</strong></td><td>${r.student_code}</td><td style="color:#00ff88; font-weight:bold;">${r.score} / ${r.total}</td><td dir="ltr">${r.submitted_at}</td></tr>`;
+            });
         }
 
         document.getElementById("createClassForm").addEventListener("submit", async e => {
@@ -390,7 +430,11 @@
             const res = await fetch(`/api/teacher/classes/${currentClassId}/material`, { method: "POST", body: fd });
             const data = await res.json();
             showToast("mat_msg", res.ok, data.message);
-            if (res.ok) { document.getElementById("mat_title").value = ""; document.getElementById("mat_content").value = ""; loadClassMaterials(); }
+            if (res.ok) {
+                document.getElementById("mat_title").value = "";
+                document.getElementById("mat_content").value = "";
+                loadClassMaterials();
+            }
         });
 
         document.getElementById("attForm").addEventListener("submit", async e => {
@@ -411,15 +455,13 @@
         document.getElementById("certForm").addEventListener("submit", async e => {
             e.preventDefault();
             const sel = document.getElementById("cert_student_select");
-            const stCode = sel.value;
-            const stName = sel.options[sel.selectedIndex].getAttribute("data-name");
             const fd = new FormData();
-            fd.append("student_code", stCode);
-            fd.append("student_name", stName);
+            fd.append("student_code", sel.value);
+            fd.append("student_name", sel.options[sel.selectedIndex].getAttribute("data-name"));
             fd.append("cert_type", document.getElementById("cert_type").value);
             const res = await fetch(`/api/teacher/classes/${currentClassId}/certificate`, { method: "POST", body: fd });
             const data = await res.json();
-            showToast("cert_msg", res.ok, `${data.message} - الرقم التسلسلي: ${data.cert_serial}`);
+            showToast("cert_msg", res.ok, `${data.message} - الرقم: ${data.cert_serial}`);
         });
 
         function showToast(id, ok, text) {

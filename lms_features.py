@@ -92,7 +92,8 @@ def send_gmail_security_link(teacher_email: str, token: str, base_url: str, purp
     sender_email = "rootaccess.cayber@gmail.com"
     setup_link = f"{base_url}setup-password?token={token}"
     
-    url = "https://brevo.com"
+    
+    url = "https://" + "://brevo.com" + "/v3/smtp/email"
 
     headers = {
         "accept": "application/json",
